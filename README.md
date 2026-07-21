@@ -2,9 +2,31 @@
 
 QRotation is a production-grade, privacy-first attendance platform built with Python and Flask. It provides secure, rotating QR-based attendance with real-time synchronization, explainable presence signals, fraud review workflows, and tools for professors, students, and administrators.
 
-This README is a deep, developer-focused reference that documents architecture, data models, configuration options, the QR attendance flow, API contract, deployment recommendations, testing guidance, and extension points.
+This README is a deep, developer-focused reference that documents architecture, data models, configuration options, the QR attendance flow, API contract, deployment recommendations, and extension points.
+
+## Submission note
+
+Repository URL
+- Public repo: [https://github.com/Saket8538/QRotation.git](https://github.com/Saket8538/QRotation.git)
+
+How Codex and the ChatGPT 5.6 tera model helped
+- I used GPT-5.6 early on to reason through the trickiest part of the project: how to make a rotating QR code system that's actually hard to spoof, while still keeping verification fast enough for a professor to use in a live classroom. It helped me weigh trade-offs between short-lived signed tokens vs. rolling secrets, and settle on a design that pairs time-boxed QR rotation with server-side signature validation.
+
+- One of the harder tasks was making attendance decisions explainable rather than a black box. I used GPT-5.6 tera model and set it as advanced mode to help design the scoring logic that surfaces why a check-in was flagged (e.g., timestamp drift, duplicate device fingerprint, GPS mismatch) so professors reviewing the fraud queue get a human-readable reason instead of just "flagged."
+
+Used Codex help in the entire project journey
+
+- I used Codex to handle lots of the repetitive, error-prone plumbing — writing the QR token generation/rotation logic, the WebSocket handlers for real-time sync between the professor's dashboard and student devices, and the session/cookie security config. I reviewed and tightened every Codex-generated function before merging, especially around secret handling and session expiry, since that's where security bugs like to hide.
+
+- Codex helped me a lot to scaffold the admin-facing fraud review workflow (queue UI, approve/reject actions, audit logging), which I then customized for the actual data model and permission checks needed for professors vs. administrators.
+
+Why this project matters
+- QRotation is built to make attendance simple, secure, and traceable instead of depending on manual roll calls.
+- It supports professor-led classes, student QR scanning, real-time attendance tracking, and reviewable alerts so the whole process feels practical in a real classroom.
+- The final result is a project that is not just technically functional, but also understandable as a hackathon submission.
 
 Table of contents
+- Submission note
 - Overview
 - Architecture and key components
 - Data model (summary)
@@ -12,7 +34,6 @@ Table of contents
 - Security and privacy considerations
 - Configuration (env vars and Config)
 - Installation, development, and running
-- Testing and validation
 - API endpoints and contracts
 - Templates, front-end notes, and PWA behavior
 - Utilities and helper scripts
@@ -115,31 +136,6 @@ Always use a secure `SECRET_KEY` and strong `QR_SECRET` in production. Store sec
 ```bash
 python -m venv .venv
 # Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
-```
-
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Copy `.env.example` to `.env` and edit environment variables for your environment.
-
-4. Initialize the database and seed sample data (the app factory runs seeding by default when `SEED_INITIAL_DATA` is enabled):
-
-```bash
-python app.py
-```
-
-5. Run the server (development):
-
-```bash
-python app.py
-# or, if you use run.py in your setup, run that instead
-```
 
 6. Visit `http://localhost:5000` and sign in with test credentials (if seed data is enabled):
 
@@ -341,72 +337,13 @@ Audit & review
 - Duplicate records: DB unique constraint (`session_id`, `student_id`) blocks duplicates; inspect client retries and idempotency behavior.
 - Offline payloads failing to sync: check service worker scope, storage quota, and AES key availability used by the front-end to seal payloads.
 
----
-## API endpoints
-
-The important endpoints (see `app/routes/api.py` and other blueprints):
-
-- `GET /api/health` — basic health check
-- `GET /api/sessions/<id>/qr` — retrieve current QR token metadata for a session
-- `GET /api/sessions/<id>/attendance` — session attendance list
-
-Auth endpoints (see `app/routes/auth.py`): `POST /auth/login`, `POST /auth/student/register`, `POST /auth/professor/register`, `GET /auth/logout`.
-
-Student and professor front-ends are implemented as server-rendered pages with Jinja2; forms and AJAX calls are wired to the routes in `app/routes/*`.
-
-When extending APIs for mobile or external integrations, prefer token-based auth (JWT) if exposing APIs outside the web UI.
-
-## Templates, front-end notes, and PWA behavior
-
-- Front-end uses Tailwind CSS, FontAwesome, and a small set of custom animations defined in `base.html`.
-- `app/static/manifest.json` and `service-worker.js` enable PWA/offline behavior for scanner pages — service worker handles offline queueing and synchronization.
-- The student scanner UI supports offline capture: payloads are AES-GCM sealed locally and retried when network connectivity is restored (see `utils/`).
-
-## Utilities and helper scripts
-
-- `app/utils/qr_generator.py` — token creation, HMAC signing, token hashing
-- `app/utils/session_generator.py` — create sessions and rosters
-- `app/utils/attendance_service.py` — central attendance processing logic used by both scanner and API
-- `app/utils/email_service.py` — async email sending and notification templates
-- `app/utils/seed_data.py` — seed initial departments, courses, users for local dev
-
-I removed temporary helper scripts created during a previous refactor (`rename_branding.py`, `list_branding_refs.py`, `search_branding_lines.py`) — they are not part of the application.
-
-## Maintenance, scaling, and deployment
-
-- Use a production-grade RDBMS (Postgres recommended) for multi-tenant or large-student populations.
-- Deploy behind a WSGI-compatible server (Gunicorn) and configure WebSockets using an async worker or run a separate SocketIO server (eventlet/gevent).
-- Persist static files and PWA artifacts to a CDN for scale.
-- Rotate `QR_SECRET` carefully — maintain backward compatibility for in-flight session tokens or revoke tokens when rotating.
-
-Scaling tips
-- Keep QR token generation and validation fast — token validation is HMAC + DB lookup for `QRToken` and `ClassSession` state.
-- Use caching (Redis) for active session state and SocketIO message broker for multi-process websockets.
-
-## Troubleshooting & FAQs
-
-- Q: QR tokens rejected immediately after generation? A: Check `QR_EXPIRY_SECONDS` and server clock skew. Ensure server time is synced (NTP).
-- Q: Scanner offline payloads not syncing? A: Inspect `service-worker.js` and browser storage; confirm network retry logic and AES key availability.
-- Q: Duplicate attendance records? A: DB unique constraint (`session_id`, `student_id`) prevents duplicates — check client retry behavior and server idempotency.
-
 ## Contributing
 
 - Fork the repository and open a pull request. Run tests and ensure new code has clear unit tests.
 - Follow the existing code style and avoid changing public API contracts without a migration plan.
 
-## Contact & next steps
+## License
 
-If you'd like, I can:
-- Generate an OpenAPI spec for the HTTP APIs.
-- Add a `docker-compose` development environment with Postgres and Redis.
-- Create integration smoke tests for the QR attendance flow.
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
 
-Open an issue or request which of the next steps you'd like me to take.
-
-
-## 📜 License
-
-- This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
-
----
 
