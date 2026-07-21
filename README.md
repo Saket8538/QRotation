@@ -190,7 +190,7 @@ Local dev uses SQLite by default. To initialize and seed the database:
 
 ```bash
 # create and activate venv
-python -m venv .venv
+py -3.12 -m venv .venv
 .venv\Scripts\activate      # Windows
 # install deps
 pip install -r requirements.txt
