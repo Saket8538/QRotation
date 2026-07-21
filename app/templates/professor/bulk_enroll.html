@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Enrollment - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="{{ url_for('professor.class_detail', class_id=class_instance.id) }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <span class="text-gray-900 text-xl font-bold">Bulk Enrollment</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Class Info -->
+        <div class="bg-blue-50 rounded-xl border border-blue-200 p-6 mb-8">
+            <h2 class="text-xl font-bold text-blue-900 mb-2">{{ class_instance.course.code }} - {{ class_instance.course.name }}</h2>
+            <p class="text-blue-700">Class Code: {{ class_instance.class_code }}</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div>
+                    <p class="text-sm text-blue-600">Current Enrollment</p>
+                    <p class="text-2xl font-bold text-blue-900">{{ enrollment_info.current_enrollment }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-600">Max Students</p>
+                    <p class="text-2xl font-bold text-blue-900">{{ enrollment_info.max_students or 'Unlimited' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-600">Available Seats</p>
+                    <p class="text-2xl font-bold text-blue-900">{{ enrollment_info.available_seats or 'Unlimited' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-600">Status</p>
+                    <p class="text-lg font-bold {% if enrollment_info.is_full %}text-red-600{% else %}text-green-600{% endif %} mt-1">
+                        {% if enrollment_info.is_full %}Full{% else %}Open{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-white rounded-xl shadow-sm border p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-info-circle text-blue-600 mr-2"></i> How to Bulk Enroll Students
+            </h3>
+            <ol class="list-decimal list-inside space-y-3 text-gray-700">
+                <li>Download the CSV template using the button below</li>
+                <li>Fill in student information (student_id, first_name, last_name, email, major, enrollment_year)</li>
+                <li>Save the file as CSV format</li>
+                <li>Upload the file using the form below</li>
+                <li>Review the results and check for any errors</li>
+            </ol>
+            
+            <div class="mt-6">
+                <a href="{{ url_for('professor.download_enrollment_template') }}" 
+                   class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+                    <i class="fas fa-download mr-2"></i> Download CSV Template
+                </a>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload CSV File</h3>
+            
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select CSV File</label>
+                    <input type="file" name="csv_file" accept=".csv" required
+                           class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2.5">
+                    <p class="mt-2 text-sm text-gray-500">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        File must be in CSV format with required columns: student_id, first_name, last_name, email
+                    </p>
+                </div>
+
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <h4 class="font-semibold text-yellow-900 mb-2">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> Important Notes
+                    </h4>
+                    <ul class="list-disc list-inside space-y-1 text-sm text-yellow-800">
+                        <li>New students will be created with default password: <strong>student123</strong></li>
+                        <li>Students must use email ending with <strong>@acem.ac.in</strong></li>
+                        <li>Existing students will be enrolled in the class</li>
+                        <li>Already enrolled students will be skipped</li>
+                    </ul>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium">
+                        <i class="fas fa-upload mr-2"></i> Upload and Enroll
+                    </button>
+                    <a href="{{ url_for('professor.class_detail', class_id=class_instance.id) }}" 
+                       class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-medium">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- CSV Format Example -->
+        <div class="mt-8 bg-gray-50 rounded-xl border p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">CSV Format Example</h3>
+            <pre class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm"><code>student_id,first_name,last_name,email,major,enrollment_year
+STU001,John,Doe,john.doe@acem.ac.in,Computer Science,2024
+STU002,Jane,Smith,jane.smith@acem.ac.in,Information Technology,2024
+STU003,Bob,Johnson,bob.johnson@acem.ac.in,Electronics,2024</code></pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

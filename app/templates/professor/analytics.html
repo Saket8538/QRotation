@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - QRotation{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="{{ url_for('professor.reports') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <i class="fas fa-chart-line text-purple-600 text-2xl mr-3"></i>
+                    <span class="text-gray-900 text-xl font-bold">Analytics Dashboard</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Attendance by Class Chart -->
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Attendance Rate by Class</h3>
+                <canvas id="attendanceByClassChart"></canvas>
+            </div>
+
+            <!-- Students by Class Chart -->
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Students Enrolled by Class</h3>
+                <canvas id="studentsByClassChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Sessions Chart -->
+        <div class="bg-white rounded-xl shadow-sm border p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Sessions Completed by Class</h3>
+            <canvas id="sessionsChart"></canvas>
+        </div>
+
+        <!-- Class Statistics Table -->
+        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div class="px-6 py-4 border-b bg-gray-50">
+                <h3 class="text-lg font-semibold text-gray-900">Class Statistics</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Class Code</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Course Name</th>
+                            <th class="px-6 py-3 text-right text-sm font-semibold text-gray-700">Students</th>
+                            <th class="px-6 py-3 text-right text-sm font-semibold text-gray-700">Sessions</th>
+                            <th class="px-6 py-3 text-right text-sm font-semibold text-gray-700">Avg Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for data in analytics_data %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 text-sm font-medium">{{ data.class_code }}</td>
+                            <td class="px-6 py-4 text-sm">{{ data.course_name }}</td>
+                            <td class="px-6 py-4 text-sm text-right">{{ data.total_students }}</td>
+                            <td class="px-6 py-4 text-sm text-right">{{ data.total_sessions }}</td>
+                            <td class="px-6 py-4 text-sm text-right">
+                                {% if data.average_attendance >= 75 %}
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                    {{ data.average_attendance }}%
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                    {{ data.average_attendance }}%
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Prepare data
+const analyticsData = {{ analytics_data|tojson|safe }};
+
+// Chart colors
+const colors = [
+    'rgba(59, 130, 246, 0.8)',  // blue
+    'rgba(16, 185, 129, 0.8)',  // green
+    'rgba(139, 92, 246, 0.8)',  // purple
+    'rgba(251, 191, 36, 0.8)',  // yellow
+    'rgba(239, 68, 68, 0.8)',   // red
+    'rgba(236, 72, 153, 0.8)',  // pink
+];
+
+// Attendance Rate Chart
+const attendanceCtx = document.getElementById('attendanceByClassChart').getContext('2d');
+new Chart(attendanceCtx, {
+    type: 'bar',
+    data: {
+        labels: analyticsData.map(d => d.class_code),
+        datasets: [{
+            label: 'Attendance Rate (%)',
+            data: analyticsData.map(d => d.average_attendance),
+            backgroundColor: colors,
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Students Chart
+const studentsCtx = document.getElementById('studentsByClassChart').getContext('2d');
+new Chart(studentsCtx, {
+    type: 'doughnut',
+    data: {
+        labels: analyticsData.map(d => d.class_code),
+        datasets: [{
+            data: analyticsData.map(d => d.total_students),
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Sessions Chart
+const sessionsCtx = document.getElementById('sessionsChart').getContext('2d');
+new Chart(sessionsCtx, {
+    type: 'line',
+    data: {
+        labels: analyticsData.map(d => d.class_code),
+        datasets: [{
+            label: 'Sessions Completed',
+            data: analyticsData.map(d => d.total_sessions),
+            borderColor: 'rgba(59, 130, 246, 1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

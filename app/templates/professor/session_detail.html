@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block title %}Session {{ session.session_number }} - QRotation{% endblock %}
+
+{% block extra_head %}
+<style>
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); }
+        50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.8); }
+    }
+    .qr-glow { animation: pulse-glow 2s ease-in-out infinite; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="{{ url_for('professor.sessions') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <span class="text-gray-900 text-xl font-bold">Session {{ session.session_number }} - {{ session.class_code }}</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('professor.command_centre', session_id=session.id) }}" class="bg-cyan-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-700"><i class="fas fa-chart-area mr-2"></i> Command centre</a>
+                    {% if session.status == 'active' %}
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium live-indicator">
+                            <i class="fas fa-circle mr-1 text-xs"></i> Active
+                        </span>
+                        <button onclick="completeSession()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                            <i class="fas fa-stop mr-2"></i> End Session
+                        </button>
+                    {% else %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium capitalize">
+                            {{ session.status }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- QR Code Section -->
+            <div class="bg-white rounded-xl shadow-sm border p-8">
+                <div class="text-center">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">{{ session.class_code }}</h2>
+                    <p class="text-gray-600 mb-6">{{ session.class_name }}</p>
+                    
+                    {% if session.status == 'active' and qr_image %}
+                        <div class="relative inline-block">
+                            <div id="qr-container" class="qr-glow rounded-2xl p-4 bg-white inline-block">
+                                <img id="qr-image" src="{{ qr_image }}" alt="QR Code" class="w-64 h-64">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <div class="flex items-center justify-center text-gray-600 mb-2">
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                <span>QR refreshes every <span id="refresh-interval">{{ qr_rotation_interval }}</span> seconds</span>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <span class="text-sm text-gray-500">Next refresh in:</span>
+                                <span id="countdown" class="ml-2 text-2xl font-bold text-blue-600">{{ qr_rotation_interval }}</span>
+                                <span class="ml-1 text-sm text-gray-500">s</span>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="refreshQR()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                                    <i class="fas fa-sync-alt mr-2"></i> Refresh Now
+                                </button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="py-12 text-gray-500">
+                            <i class="fas fa-qrcode text-6xl mb-4"></i>
+                            <p>Session is not active</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Attendance Section -->
+            <div class="bg-white rounded-xl shadow-sm border">
+                <div class="p-6 border-b flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-users mr-2"></i> Attendance
+                    </h2>
+                    <span class="text-gray-500">
+                        <span id="attendance-count">{{ attendance_records | length }}</span> / {{ total_students }} students
+                    </span>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto" id="attendance-list">
+                    {% if attendance_list %}
+                        <div class="space-y-3">
+                            {% for record in attendance_list %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ record.name }}</p>
+                                        <p class="text-sm text-gray-500">{{ record.student_id }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium
+                                        {% if record.status == 'present' %}bg-green-100 text-green-800
+                                        {% elif record.status == 'late' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ record.status | capitalize }}
+                                    </span>
+                                    <p class="text-xs text-gray-400 mt-1">{{ record.scanned_at.strftime('%H:%M:%S') }}</p>
+                                    <p class="text-xs text-cyan-600 mt-1">Presence {{ record.presence_confidence }}%{% if record.fraud_alert_count %} · {{ record.fraud_alert_count }} alert(s){% endif %}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-user-clock text-4xl mb-4"></i>
+                            <p>Waiting for students to scan...</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Present</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-present">{{ stats.present }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Late</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-late">{{ stats.late }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-times text-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Absent</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-absent">{{ stats.absent }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-percentage text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Rate</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-rate">{{ stats.rate }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if session.status == 'active' %}
+<script>
+// ==========================================
+// CONFIGURATION & STATE
+// ==========================================
+const refreshInterval = parseInt('{{ qr_rotation_interval }}') || 60;
+const sessionId = "{{ session.id }}";
+let countdown = refreshInterval;
+let timerInterval = null;
+let isRefreshing = false;
+
+console.log('Session Detail initialized');
+console.log('Session ID:', sessionId);
+console.log('Refresh Interval:', refreshInterval);
+
+// ==========================================
+// CORE FUNCTIONS
+// ==========================================
+
+// Update the visual countdown
+function updateCountdownDisplay() {
+    const countdownEl = document.getElementById('countdown');
+    if (!countdownEl) return;
+    
+    // Ensure accurate display
+    const displayValue = Math.max(0, countdown);
+    countdownEl.textContent = displayValue;
+    
+    // Visual alerts
+    if (displayValue <= 5) {
+        countdownEl.classList.add('text-red-600');
+        countdownEl.classList.remove('text-blue-600');
+    } else {
+        countdownEl.classList.add('text-blue-600');
+        countdownEl.classList.remove('text-red-600');
+    }
+}
+
+// Main timer logic
+function startTimer() {
+    // Clear any existing timer
+    if (timerInterval) clearInterval(timerInterval);
+    
+    timerInterval = setInterval(() => {
+        if (isRefreshing) return; // Don't count down while refreshing
+        
+        countdown--;
+        updateCountdownDisplay();
+        
+        if (countdown <= 0) {
+            refreshQR();
+        }
+    }, 1000);
+    
+    console.log('Timer started');
+}
+
+// Refresh QR code
+function refreshQR() {
+    if (isRefreshing) return;
+    isRefreshing = true;
+    
+    console.log('Refreshing QR code...');
+    const refreshBtn = document.querySelector('button[onclick="refreshQR()"]');
+    if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Refreshing...';
+    }
+
+    fetch('/professor/sessions/' + sessionId + '/refresh-qr', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateQRImage(data.qr_code);
+            countdown = refreshInterval;
+            updateCountdownDisplay();
+            console.log('QR code refreshed successfully');
+        } else {
+            console.error('Failed to refresh QR:', data.error);
+            showNotification('Failed to refresh QR: ' + data.error, 'error');
+            countdown = 5; // Retry in 5 seconds on error
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing QR:', error);
+        showNotification('Network error refreshing QR', 'error');
+        countdown = 5; // Retry in 5 seconds
+    })
+    .finally(() => {
+        isRefreshing = false;
+        if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Refresh Now';
+        }
+    });
+}
+
+// Helper to update QR image with animation
+function updateQRImage(src) {
+    const qrImg = document.getElementById('qr-image');
+    if (qrImg) {
+        qrImg.style.opacity = '0.5';
+        setTimeout(() => {
+            qrImg.src = src;
+            qrImg.style.opacity = '1';
+        }, 200);
+    }
+}
+
+// Complete session (End Session Button)
+// Made global by defining it on window or simply in the global scope of this script block
+window.completeSession = function() {
+    console.log('End Session clicked');
+    if (confirm('Are you sure you want to end this session? Students who have not scanned will be marked absent.')) {
+        
+        // Show loading state on button if possible, but finding it by text is hard without ID.
+        // We'll just proceed.
+        
+        fetch('/professor/sessions/' + sessionId + '/complete', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                console.log('Session ended successfully');
+                stopTimers();
+                if (socket) socket.disconnect();
+                window.location.reload();
+            } else {
+                console.error('Server error ending session:', data.error);
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error completing session:', error);
+            alert('Error completing session. Check console for details.');
+        });
+    }
+};
+
+function stopTimers() {
+    if (timerInterval) clearInterval(timerInterval);
+}
+
+// Show notification toast
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('toast-container') || createToastContainer();
+    
+    const notification = document.createElement('div');
+    const bgClass = type === 'success' ? 'from-green-500 to-green-600' : 
+                   type === 'error' ? 'from-red-500 to-red-600' : 
+                   'from-blue-500 to-blue-600';
+    const iconClass = type === 'success' ? 'fa-check-circle' : 
+                     type === 'error' ? 'fa-exclamation-circle' : 
+                     'fa-info-circle';
+                     
+    notification.className = `toast-slide max-w-sm px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3 bg-gradient-to-r ${bgClass} text-white mb-2`;
+    notification.innerHTML = `
+        <i class="fas ${iconClass}"></i>
+        <span class="text-sm font-medium flex-1">${message}</span>
+        <button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100 transition"><i class="fas fa-times"></i></button>
+    `;
+    
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'fixed top-4 right-4 z-50 space-y-2';
+    document.body.appendChild(container);
+    return container;
+}
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Initialize logic
+    updateCountdownDisplay();
+    startTimer();
+    
+    // 2. Setup Socket.IO
+    if (typeof io !== 'undefined') {
+        if (!window.socket) {
+            window.socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
+        }
+        
+        const socket = window.socket;
+
+        if (socket.connected) {
+            socket.emit('join', { room: 'session-' + sessionId });
+        } else {
+            socket.on('connect', () => {
+                socket.emit('join', { room: 'session-' + sessionId });
+            });
+        }
+        
+        // Listen for QR updates (from other tabs/clients)
+        socket.on('qr_update', function(data) {
+            if (data.sessionId === sessionId) {
+                updateQRImage(data.qr_code);
+                countdown = refreshInterval; // Reset timer
+                updateCountdownDisplay();
+                console.log('QR code updated via WebSocket');
+            }
+        });
+
+        // Listen for attendance updates
+        socket.on('attendance_update', function(data) {
+            if (data.sessionId === sessionId) {
+                updateAttendanceStats(data);
+                addAttendanceRecord(data.newRecord);
+            }
+        });
+    }
+});
+
+// Update attendance statistics in UI
+function updateAttendanceStats(data) {
+    const countEl = document.getElementById('attendance-count');
+    if (countEl) countEl.textContent = data.attendanceCount;
+    
+    // Update stats cards based on new attendance
+    if (data.newRecord && data.newRecord.status) {
+        const status = data.newRecord.status;
+        
+        // Increment the appropriate stat
+        const statEl = document.getElementById(`stat-${status}`);
+        if (statEl) {
+            const currentCount = parseInt(statEl.textContent) || 0;
+            statEl.textContent = currentCount + 1;
+        }
+        
+        // Update attendance rate
+        const rateEl = document.getElementById('stat-rate');
+        const totalEl = document.getElementById('attendance-count');
+        if (rateEl && totalEl) {
+            const attended = parseInt(totalEl.textContent) || 0;
+            const total = parseInt('{{ total_students }}') || 1;
+            const rate = Math.round((attended / total) * 100);
+            rateEl.textContent = rate + '%';
+        }
+    }
+}
+
+// Add new attendance record to the list
+function addAttendanceRecord(record) {
+    if (!record) return;
+    
+    const attendanceList = document.getElementById('attendance-list');
+    if (!attendanceList) return;
+    
+    const statusColors = {
+        'present': 'bg-green-100 text-green-800',
+        'late': 'bg-yellow-100 text-yellow-800',
+        'excused': 'bg-blue-100 text-blue-800'
+    };
+    
+    const newRecordHTML = `
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" style="animation: slideIn 0.3s ease-out;">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-user text-purple-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">${record.name}</p>
+                    <p class="text-sm text-gray-500">${record.student_id}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="px-3 py-1 rounded-full text-xs font-medium ${statusColors[record.status] || 'bg-gray-100 text-gray-800'}">
+                    ${record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                </span>
+                <p class="text-xs text-gray-400 mt-1">${record.time || 'Just now'}</p>
+            </div>
+        </div>
+    `;
+    
+    // Check if empty state exists
+    const emptyState = attendanceList.querySelector('.text-center.py-8');
+    if (emptyState) emptyState.remove();
+    
+    attendanceList.insertAdjacentHTML('afterbegin', newRecordHTML);
+    showNotification(`New attendance: ${record.name}`, 'success');
+}
+
+// Cleanup
+window.addEventListener('beforeunload', function() {
+    stopTimers();
+    if (window.socket) window.socket.disconnect();
+});
+</script>
+{% endif %}
+{% endblock %}

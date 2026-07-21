@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Integrity Alerts{% endblock %}
+{% block content %}
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="mb-8"><p class="text-sm font-semibold text-rose-600 uppercase tracking-wide">Trust & safety</p><h1 class="text-3xl font-bold text-gray-900 mt-2">Integrity Alerts</h1><p class="text-gray-600 mt-2">Signals are reviewable and never change attendance automatically.</p></div>
+  <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"><div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-gray-50 text-left text-gray-500"><tr><th class="p-4">Student</th><th class="p-4">Signal</th><th class="p-4">Severity</th><th class="p-4">Session</th><th class="p-4">Status</th><th class="p-4">Action</th></tr></thead><tbody class="divide-y divide-gray-100">
+  {% for row in alerts %}<tr><td class="p-4 font-medium">{{ row.student_name }}</td><td class="p-4">{{ row.type.replace('_', ' ')|title }}</td><td class="p-4"><span class="px-2 py-1 rounded-full text-xs {% if row.severity == 'high' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-700{% endif %}">{{ row.severity }}</span></td><td class="p-4">{{ row.session.session_number if row.session else '—' }}</td><td class="p-4">{{ row.status }}</td><td class="p-4">{% if row.status == 'open' %}<form method="post" action="{{ url_for('professor.review_fraud_alert', alert_id=row.id) }}"><input type="hidden" name="status" value="reviewed"><button class="text-indigo-600 font-semibold">Review</button></form>{% else %}<span class="text-gray-400">Closed</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="6" class="p-10 text-center text-gray-500">No integrity alerts. That is good news.</td></tr>{% endfor %}</tbody></table></div></section>
+</main>
+{% endblock %}

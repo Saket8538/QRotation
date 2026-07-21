@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Professor Dashboard - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <!-- Enhanced Navigation -->
+    <nav class="bg-white shadow-lg border-b-4 border-blue-500 animate-fade-in-down">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center space-x-3 animate-fade-in-left">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-gray-700 hover:text-blue-600 mr-2">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    
+                    <div class="bounce-in">
+                        <i class="fas fa-chalkboard-teacher text-blue-600 text-3xl"></i>
+                    </div>
+                    <span class="text-gray-900 text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">QRotation</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('professor.reports') }}" class="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-xl hover:bg-blue-50 transition duration-300 flex items-center transform hover:scale-105 font-medium">
+                        <i class="fas fa-file-alt mr-2"></i> Reports
+                    </a>
+                    <a href="{{ url_for('professor.analytics') }}" class="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-xl hover:bg-blue-50 transition duration-300 flex items-center transform hover:scale-105 font-medium">
+                        <i class="fas fa-chart-line mr-2"></i> Analytics
+                    </a>
+                    <a href="{{ url_for('professor.copilot') }}" class="text-indigo-700 hover:text-indigo-900 px-4 py-2 rounded-xl hover:bg-indigo-50 transition duration-300 flex items-center transform hover:scale-105 font-medium">
+                        <i class="fas fa-robot mr-2"></i> Copilot
+                    </a>
+                    <a href="{{ url_for('professor.create_class') }}" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition duration-300 flex items-center transform hover:scale-110 hover:shadow-2xl font-semibold">
+                        <i class="fas fa-plus mr-2"></i> New Class
+                    </a>
+                    <div class="relative">
+                        <button onclick="toggleProfileDropdown(event)" class="flex items-center text-gray-700 hover:text-gray-900">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                                <i class="fas fa-user text-blue-600"></i>
+                            </div>
+                            <span>{{ current_user.first_name }}</span>
+                            <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                        </button>
+                        <div id="profileDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden z-50">
+                            <a href="{{ url_for('professor.profile') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2"></i> Profile
+                            </a>
+                            <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-red-600 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                    <script>
+                        function toggleProfileDropdown(e) {
+                            e.stopPropagation();
+                            const dropdown = document.getElementById('profileDropdown');
+                            dropdown.classList.toggle('hidden');
+                        }
+                        // Close dropdown when clicking outside
+                        document.addEventListener('click', function() {
+                            document.getElementById('profileDropdown')?.classList.add('hidden');
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar + Content -->
+    <div class="flex">
+        <!-- Enhanced Sidebar -->
+        <aside class="w-72 bg-white border-r-4 border-blue-100 min-h-screen p-6 hidden md:block shadow-lg animate-fade-in-left">
+            <nav class="space-y-3">
+                <a href="{{ url_for('professor.dashboard') }}" class="flex items-center px-5 py-4 text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg transform scale-105 font-semibold">
+                    <i class="fas fa-home mr-3 text-xl"></i> Dashboard
+                </a>
+                <a href="{{ url_for('professor.classes') }}" class="sidebar-link flex items-center px-5 py-4 text-gray-600 hover:bg-blue-50 rounded-xl font-medium">
+                    <i class="fas fa-book mr-3 text-xl"></i> My Classes
+                </a>
+                <a href="{{ url_for('professor.sessions') }}" class="sidebar-link flex items-center px-5 py-4 text-gray-600 hover:bg-blue-50 rounded-xl font-medium">
+                    <i class="fas fa-calendar mr-3 text-xl"></i> Sessions
+                </a>
+                <a href="{{ url_for('professor.copilot') }}" class="sidebar-link flex items-center px-5 py-4 text-indigo-700 hover:bg-indigo-50 rounded-xl font-medium">
+                    <i class="fas fa-robot mr-3 text-xl"></i> Attendance Copilot
+                </a>
+                <a href="{{ url_for('professor.fraud_alerts') }}" class="sidebar-link flex items-center px-5 py-4 text-rose-700 hover:bg-rose-50 rounded-xl font-medium">
+                    <i class="fas fa-shield-alt mr-3 text-xl"></i> Integrity Alerts
+                </a>
+                <a href="{{ url_for('professor.appeals') }}" class="sidebar-link flex items-center px-5 py-4 text-amber-700 hover:bg-amber-50 rounded-xl font-medium">
+                    <i class="fas fa-inbox mr-3 text-xl"></i> Appeals
+                </a>
+                <a href="{{ url_for('professor.profile') }}" class="sidebar-link flex items-center px-5 py-4 text-gray-600 hover:bg-blue-50 rounded-xl font-medium">
+                    <i class="fas fa-user mr-3 text-xl"></i> Profile
+                </a>
+            </nav>
+            
+            <!-- Quick Stats Widget -->
+            <div class="mt-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl p-6 text-white shadow-xl animate-fade-in-up stagger-delay-2">
+                <h3 class="font-bold text-lg mb-2 flex items-center">
+                    <i class="fas fa-chart-pie mr-2"></i>Overview
+                </h3>
+                <div class="space-y-3 mt-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm opacity-90">Total Classes</span>
+                        <span class="font-bold text-xl">{{ stats.total_classes }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm opacity-90">Active Now</span>
+                        <span class="font-bold text-xl">{{ stats.active_sessions }}</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Enhanced Welcome Section -->
+            <div class="mb-10 animate-fade-in-up">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                    Welcome, <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{{ professor.title }} {{ current_user.last_name }}</span>! 👨‍🏫
+                </h1>
+                <p class="text-gray-600 text-lg flex items-center space-x-2">
+                    <i class="fas fa-calendar text-blue-600"></i>
+                    <span>{{ current_time.strftime('%A, %B %d, %Y') }}</span>
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-clock text-blue-600"></i>
+                    <span class="real-time-clock"></span>
+                </p>
+            </div>
+
+            <!-- Enhanced Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                <div class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-blue-500 card-hover animate-fade-in-up stagger-delay-1 transform hover:scale-105">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg bounce-in">
+                            <i class="fas fa-book text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm font-semibold">Total Classes</p>
+                            <p class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{{ stats.total_classes }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-green-500 card-hover animate-fade-in-up stagger-delay-2 transform hover:scale-105">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg bounce-in stagger-delay-1">
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm font-semibold">Total Students</p>
+                            <p class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{{ stats.total_students }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-purple-500 card-hover animate-fade-in-up stagger-delay-3 transform hover:scale-105">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg bounce-in stagger-delay-2">
+                            <i class="fas fa-calendar-check text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm font-semibold">Active Sessions</p>
+                            <p class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{{ stats.active_sessions }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-yellow-500 card-hover animate-fade-in-up stagger-delay-4 transform hover:scale-105">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg bounce-in stagger-delay-3">
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm font-semibold">Avg Attendance</p>
+                            <p class="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">{{ stats.average_attendance }}%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Sessions -->
+            {% if active_sessions %}
+            <div class="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-8">
+                <h2 class="text-lg font-semibold text-green-800 mb-4">
+                    <i class="fas fa-broadcast-tower mr-2 animate-pulse"></i> Active Sessions
+                </h2>
+                <div class="space-y-4">
+                    {% for session in active_sessions %}
+                    <div class="bg-white rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">{{ session.class_code }} - {{ session.class_name }}</h3>
+                            <p class="text-sm text-gray-500">
+                                {{ session.present_count }}/{{ session.total_students }} students present
+                            </p>
+                        </div>
+                        <a href="{{ url_for('professor.session_detail', session_id=session.id) }}" 
+                           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-qrcode mr-2"></i> View QR
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Today's Classes -->
+            <div class="bg-white rounded-xl shadow-sm border mb-8">
+                <div class="p-6 border-b">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-calendar-day mr-2 text-blue-600"></i> Today's Classes
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if today_classes %}
+                        <div class="space-y-4">
+                            {% for class in today_classes %}
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-book text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900">{{ class.code }} - {{ class.name }}</h3>
+                                        <p class="text-sm text-gray-500">
+                                            <i class="fas fa-map-marker-alt mr-1"></i> {{ class.room or 'TBA' }}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-users mr-1"></i> {{ class.student_count }} students
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    {% if class.has_active_session %}
+                                        <a href="{{ url_for('professor.session_detail', session_id=class.active_session_id) }}" 
+                                           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                            <i class="fas fa-qrcode mr-2"></i> View QR
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('professor.start_session', class_id=class.id) }}" 
+                                           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                            <i class="fas fa-play mr-2"></i> Start Session
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-calendar-times text-4xl mb-4"></i>
+                            <p>No classes scheduled for today</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- My Classes -->
+            <div class="bg-white rounded-xl shadow-sm border">
+                <div class="p-6 border-b flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-book-open mr-2 text-blue-600"></i> My Classes
+                    </h2>
+                    <a href="{{ url_for('professor.classes') }}" class="text-blue-600 hover:text-blue-800 text-sm">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                <div class="p-6">
+                    {% if classes %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for class in classes[:6] %}
+                            <a href="{{ url_for('professor.class_detail', class_id=class.id) }}" 
+                               class="block p-4 border rounded-lg hover:shadow-md transition">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-book text-blue-600"></i>
+                                    </div>
+                                    <span class="text-sm text-gray-500">{{ class.student_count }} students</span>
+                                </div>
+                                <h3 class="font-semibold text-gray-900">{{ class.code }}</h3>
+                                <p class="text-sm text-gray-600 truncate">{{ class.name }}</p>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-folder-open text-4xl mb-4"></i>
+                            <p>No classes yet</p>
+                            <a href="{{ url_for('professor.create_class') }}" class="mt-4 inline-block text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-plus mr-1"></i> Create your first class
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

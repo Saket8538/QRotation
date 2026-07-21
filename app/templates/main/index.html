@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}QRotation - Home{% endblock %}
+
+{% block content %}
+<div class="min-h-screen gradient-bg relative">
+    <!-- Animated particles background -->
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 4.5s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="bg-white/10 backdrop-blur-lg border-b border-white/20 animate-fade-in-down relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3 animate-fade-in-left">
+                    <div class="bounce-in">
+                        <i class="fas fa-graduation-cap text-white text-3xl"></i>
+                    </div>
+                    <span class="text-white text-xl font-bold">QRotation</span>
+                </div>
+                <div class="flex space-x-4 animate-fade-in-right">
+                    <a href="{{ url_for('auth.student_login') }}" class="text-white hover:text-gray-200 px-4 py-2 rounded-lg hover:bg-white/10 transition duration-300 transform hover:scale-105">
+                        <i class="fas fa-user-graduate mr-2"></i>Student Login
+                    </a>
+                    <a href="{{ url_for('auth.professor_login') }}" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 transform hover:scale-105 hover:shadow-xl">
+                        <i class="fas fa-chalkboard-teacher mr-2"></i>Professor Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
+        <div class="text-center">
+            <h1 class="text-6xl font-bold text-white mb-6 animate-fade-in-up">
+                QRotation Management
+                <span class="block text-5xl mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-200 to-purple-200 animate-fade-in-up stagger-delay-1">
+                    Powered by Innovation
+                </span>
+            </h1>
+            <p class="text-2xl text-white/90 mb-10 max-w-3xl mx-auto animate-fade-in-up stagger-delay-2 leading-relaxed">
+                Revolutionize your classroom attendance with real-time QR code scanning, 
+                dynamic rotation, cloud synchronization, and intelligent analytics.
+            </p>
+            <div class="flex justify-center space-x-6 animate-fade-in-up stagger-delay-3">
+                <a href="{{ url_for('auth.student_register') }}" class="bg-white text-purple-600 px-10 py-4 rounded-xl font-bold hover:bg-gray-100 transition duration-300 text-lg transform hover:scale-110 hover:shadow-2xl relative overflow-hidden group">
+                    <span class="relative z-10"><i class="fas fa-user-graduate mr-2"></i>Student Sign Up</span>
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                </a>
+                <a href="{{ url_for('auth.professor_register') }}" class="bg-purple-800 text-white px-10 py-4 rounded-xl font-bold hover:bg-purple-900 transition duration-300 text-lg border-2 border-white/40 transform hover:scale-110 hover:shadow-2xl relative overflow-hidden group">
+                    <span class="relative z-10"><i class="fas fa-chalkboard-teacher mr-2"></i>Professor Sign Up</span>
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Enhanced Features Section with Animation -->
+        <div class="mt-32 grid md:grid-cols-3 gap-8">
+            <div class="glass-effect rounded-2xl p-8 border-2 border-white/30 card-hover animate-fade-in-up stagger-delay-1 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="w-16 h-16 bg-gradient-to-br from-white/30 to-white/10 rounded-xl flex items-center justify-center mb-6 bounce-in stagger-delay-1 transform group-hover:rotate-12 transition-transform duration-300">
+                    <i class="fas fa-qrcode text-white text-3xl"></i>
+                </div>
+                <h3 class="text-white text-2xl font-bold mb-3">Dynamic QR Codes</h3>
+                <p class="text-white/80 text-lg leading-relaxed">QR codes rotate every 30 seconds with military-grade encryption, preventing screenshot sharing and ensuring authentic attendance.</p>
+                <div class="mt-4 flex items-center space-x-2">
+                    <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                    <span class="text-white/70 text-sm">Real-time Protection</span>
+                </div>
+            </div>
+            
+            <div class="glass-effect rounded-2xl p-8 border-2 border-white/30 card-hover animate-fade-in-up stagger-delay-2 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="w-16 h-16 bg-gradient-to-br from-white/30 to-white/10 rounded-xl flex items-center justify-center mb-6 bounce-in stagger-delay-2 transform group-hover:rotate-12 transition-transform duration-300">
+                    <i class="fas fa-sync text-white text-3xl"></i>
+                </div>
+                <h3 class="text-white text-2xl font-bold mb-3">Real-time Sync</h3>
+                <p class="text-white/80 text-lg leading-relaxed">Lightning-fast attendance updates with live monitoring, instant notifications, and WebSocket-powered synchronization.</p>
+                <div class="mt-4 flex items-center space-x-2">
+                    <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                    <span class="text-white/70 text-sm">Instant Updates</span>
+                </div>
+            </div>
+            
+            <div class="glass-effect rounded-2xl p-8 border-2 border-white/30 card-hover animate-fade-in-up stagger-delay-3 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="w-16 h-16 bg-gradient-to-br from-white/30 to-white/10 rounded-xl flex items-center justify-center mb-6 bounce-in stagger-delay-3 transform group-hover:rotate-12 transition-transform duration-300">
+                    <i class="fas fa-chart-bar text-white text-3xl"></i>
+                </div>
+                <h3 class="text-white text-2xl font-bold mb-3">Advanced Analytics</h3>
+                <p class="text-white/80 text-lg leading-relaxed">Comprehensive attendance reports, predictive analytics, and AI-powered insights for better classroom management.</p>
+                <div class="mt-4 flex items-center space-x-2">
+                    <span class="inline-block w-2 h-2 bg-pink-400 rounded-full animate-pulse"></span>
+                    <span class="text-white/70 text-sm">Smart Insights</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- How it works with Enhanced Animation -->
+        <div class="mt-32">
+            <h2 class="text-4xl font-bold text-white text-center mb-4 animate-fade-in-up">How It Works</h2>
+            <p class="text-xl text-white/80 text-center mb-16 animate-fade-in-up stagger-delay-1">Simple, Secure, and Seamless</p>
+            
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="text-center animate-fade-in-up stagger-delay-1 transform hover:scale-110 transition-all duration-500">
+                    <div class="relative inline-block mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-br from-white via-gray-100 to-white rounded-full flex items-center justify-center mx-auto shadow-2xl float-animation">
+                            <span class="text-purple-600 text-3xl font-black">1</span>
+                        </div>
+                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-green-400 rounded-full flex items-center justify-center bounce-in stagger-delay-1">
+                            <i class="fas fa-check text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-white font-bold text-xl mb-3">Professor Starts Session</h4>
+                    <p class="text-white/70 text-base">Professor activates the class session with one click</p>
+                </div>
+                
+                <div class="text-center animate-fade-in-up stagger-delay-2 transform hover:scale-110 transition-all duration-500">
+                    <div class="relative inline-block mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-br from-white via-gray-100 to-white rounded-full flex items-center justify-center mx-auto shadow-2xl float-animation" style="animation-delay: 0.2s;">
+                            <span class="text-purple-600 text-3xl font-black">2</span>
+                        </div>
+                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center bounce-in stagger-delay-2">
+                            <i class="fas fa-qrcode text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-white font-bold text-xl mb-3">QR Code Generated</h4>
+                    <p class="text-white/70 text-base">Secure QR code displayed (rotates every 30s)</p>
+                </div>
+                
+                <div class="text-center animate-fade-in-up stagger-delay-3 transform hover:scale-110 transition-all duration-500">
+                    <div class="relative inline-block mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-br from-white via-gray-100 to-white rounded-full flex items-center justify-center mx-auto shadow-2xl float-animation" style="animation-delay: 0.4s;">
+                            <span class="text-purple-600 text-3xl font-black">3</span>
+                        </div>
+                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center bounce-in stagger-delay-3">
+                            <i class="fas fa-mobile-alt text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-white font-bold text-xl mb-3">Students Scan</h4>
+                    <p class="text-white/70 text-base">Students scan QR with their devices</p>
+                </div>
+                
+                <div class="text-center animate-fade-in-up stagger-delay-4 transform hover:scale-110 transition-all duration-500">
+                    <div class="relative inline-block mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-br from-white via-gray-100 to-white rounded-full flex items-center justify-center mx-auto shadow-2xl float-animation" style="animation-delay: 0.6s;">
+                            <span class="text-purple-600 text-3xl font-black">4</span>
+                        </div>
+                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-pink-400 rounded-full flex items-center justify-center bounce-in stagger-delay-4">
+                            <i class="fas fa-check-double text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-white font-bold text-xl mb-3">Attendance Recorded</h4>
+                    <p class="text-white/70 text-base">Instant verification and recording</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Section -->
+        <div class="mt-32 glass-effect rounded-3xl p-12 border-2 border-white/30 animate-fade-in-up">
+            <div class="grid md:grid-cols-4 gap-8 text-center">
+                <div class="transform hover:scale-110 transition-all duration-300">
+                    <div class="text-5xl font-black text-white mb-2 bounce-in">99.9%</div>
+                    <div class="text-white/70 text-lg">Accuracy Rate</div>
+                </div>
+                <div class="transform hover:scale-110 transition-all duration-300">
+                    <div class="text-5xl font-black text-white mb-2 bounce-in stagger-delay-1">30s</div>
+                    <div class="text-white/70 text-lg">QR Rotation</div>
+                </div>
+                <div class="transform hover:scale-110 transition-all duration-300">
+                    <div class="text-5xl font-black text-white mb-2 bounce-in stagger-delay-2">24/7</div>
+                    <div class="text-white/70 text-lg">Cloud Sync</div>
+                </div>
+                <div class="transform hover:scale-110 transition-all duration-300">
+                    <div class="text-5xl font-black text-white mb-2 bounce-in stagger-delay-3">∞</div>
+                    <div class="text-white/70 text-lg">Scalability</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Footer -->
+    <footer class="bg-white/10 backdrop-blur-lg border-t border-white/20 mt-32 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div class="animate-fade-in-left">
+                    <h3 class="text-white font-bold text-xl mb-4 flex items-center">
+                        <i class="fas fa-graduation-cap mr-3"></i>QRotation
+                    </h3>
+                    <p class="text-white/70">Next-generation attendance management for modern education.</p>
+                </div>
+                <div class="animate-fade-in-up">
+                    <h4 class="text-white font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-white/70">
+                        <li><a href="{{ url_for('main.about') }}" class="hover:text-white transition">About Us</a></li>
+                        <li><a href="{{ url_for('auth.student_login') }}" class="hover:text-white transition">Student Portal</a></li>
+                        <li><a href="{{ url_for('auth.professor_login') }}" class="hover:text-white transition">Professor Portal</a></li>
+                    </ul>
+                </div>
+                <div class="animate-fade-in-right">
+                    <h4 class="text-white font-bold mb-4">Connect</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition transform hover:scale-110">
+                            <i class="fab fa-facebook text-white"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition transform hover:scale-110">
+                            <i class="fab fa-twitter text-white"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition transform hover:scale-110">
+                            <i class="fab fa-linkedin text-white"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-white/20 pt-8 text-center text-white/60">
+                <p>&copy; 2026 QRotation. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+{% endblock %}

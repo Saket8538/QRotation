@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}About - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{{ url_for('main.index') }}" class="flex items-center">
+                    <i class="fas fa-graduation-cap text-purple-600 text-2xl mr-3"></i>
+                    <span class="text-gray-900 text-xl font-bold">QRotation</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-6">About the System</h1>
+        
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">QRotation</h2>
+            <p class="text-gray-600 mb-6">
+                The traditional attendance process used in many educational institutions is slow, error-prone, 
+                and vulnerable to proxy attendance, leading to inaccurate records. To overcome these issues, 
+                this project introduces a QRotation that leverages real-time cloud 
+                synchronization and dynamic QR code rotation.
+            </p>
+            
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Key Features</h3>
+            <ul class="list-disc list-inside text-gray-600 space-y-2 mb-6">
+                <li>Dynamic QR codes that rotate every 30 seconds</li>
+                <li>Real-time attendance tracking and synchronization</li>
+                <li>Prevention of proxy attendance through device authentication</li>
+                <li>Comprehensive attendance analytics and reports</li>
+                <li>Session management for professors</li>
+                <li>Student enrollment and class management</li>
+                <li>Notifications for students and professors</li>
+            </ul>
+            
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Technology Stack</h3>
+            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                <li>Python Flask for backend</li>
+                <li>SQLite for database</li>
+                <li>Socket.IO for real-time updates</li>
+                <li>Tailwind CSS for UI</li>
+                <li>QR Code generation with secure rotation</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

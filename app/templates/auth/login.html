@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Login - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen gradient-bg flex items-center justify-center py-12 px-4 relative overflow-hidden">
+    <!-- Animated particles background -->
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 2.5s;"></div>
+    </div>
+    
+    <!-- Floating elements -->
+    <div class="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+    <div class="absolute top-40 right-10 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    
+    <div class="max-w-md w-full relative z-10">
+        <div class="text-center mb-8 animate-fade-in-down">
+            <a href="{{ url_for('main.index') }}" class="inline-flex items-center text-white transform hover:scale-110 transition-all duration-300">
+                <div class="bounce-in">
+                    <i class="fas fa-graduation-cap text-4xl mr-3"></i>
+                </div>
+                <span class="text-3xl font-bold">QRotation</span>
+            </a>
+            <p class="text-white/80 mt-3 text-lg">Welcome back! Please login to continue</p>
+        </div>
+
+        <div class="glass-effect rounded-3xl shadow-2xl p-10 border-2 border-white/30 animate-zoom-in transform hover:scale-105 transition-all duration-500">
+            <h2 class="text-3xl font-bold text-gray-900 text-center mb-8 animate-fade-in-up">
+                <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    Sign In
+                </span>
+            </h2>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-6">
+                <div class="animate-fade-in-up stagger-delay-1">
+                    <label class="block text-gray-800 text-sm font-bold mb-3">
+                        <i class="fas fa-user-circle mr-2 text-purple-600"></i>I am a
+                    </label>
+                    <div class="flex space-x-4">
+                        <label class="flex-1">
+                            <input type="radio" name="role" value="student" checked class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-300 rounded-xl text-center cursor-pointer peer-checked:border-purple-500 peer-checked:bg-gradient-to-br peer-checked:from-purple-50 peer-checked:to-blue-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                                <i class="fas fa-user-graduate text-2xl mb-2 text-purple-600"></i>
+                                <p class="text-sm font-bold text-gray-700">Student</p>
+                            </div>
+                        </label>
+                        <label class="flex-1">
+                            <input type="radio" name="role" value="professor" class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-300 rounded-xl text-center cursor-pointer peer-checked:border-blue-500 peer-checked:bg-gradient-to-br peer-checked:from-blue-50 peer-checked:to-purple-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                                <i class="fas fa-chalkboard-teacher text-2xl mb-2 text-blue-600"></i>
+                                <p class="text-sm font-bold text-gray-700">Professor</p>
+                            </div>
+                        </label>
+                        <label class="flex-1">
+                            <input type="radio" name="role" value="admin" class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-300 rounded-xl text-center cursor-pointer peer-checked:border-emerald-500 peer-checked:bg-gradient-to-br peer-checked:from-emerald-50 peer-checked:to-cyan-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                                <i class="fas fa-shield-alt text-2xl mb-2 text-emerald-600"></i>
+                                <p class="text-sm font-bold text-gray-700">Admin</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="animate-fade-in-up stagger-delay-2">
+                    <label class="block text-gray-800 text-sm font-bold mb-2">
+                        <i class="fas fa-envelope mr-2 text-purple-600"></i>Email Address
+                    </label>
+                    <div class="relative">
+                        <input type="email" name="email" required 
+                            class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                            placeholder="your.email@acem.ac.in">
+                        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <i class="fas fa-at"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="animate-fade-in-up stagger-delay-3">
+                    <label class="block text-gray-800 text-sm font-bold mb-2">
+                        <i class="fas fa-lock mr-2 text-purple-600"></i>Password
+                    </label>
+                    <div class="relative">
+                        <input type="password" name="password" required id="password-input"
+                            class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                            placeholder="Enter your password">
+                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors">
+                            <i class="fas fa-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                    class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl animate-fade-in-up stagger-delay-4 relative overflow-hidden group">
+                    <span class="relative z-10"><i class="fas fa-sign-in-alt mr-2"></i>Sign In</span>
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center animate-fade-in-up stagger-delay-5">
+                <a href="{{ url_for('auth.forgot_password') }}" class="text-purple-600 hover:text-purple-800 text-sm font-medium inline-flex items-center transform hover:scale-105 transition-all duration-300">
+                    <i class="fas fa-question-circle mr-2"></i>Forgot your password?
+                </a>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-gray-200 text-center animate-fade-in-up stagger-delay-6">
+                <span class="text-gray-600">Don't have an account?</span>
+                <a href="{{ url_for('auth.register') }}" class="text-purple-600 hover:text-purple-800 font-bold ml-1 inline-flex items-center transform hover:scale-105 transition-all duration-300">
+                    Sign up now <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Additional info card -->
+        <div class="mt-6 glass-effect rounded-2xl p-6 border border-white/30 text-center animate-fade-in-up stagger-delay-7">
+            <p class="text-white/90 text-sm">
+                <i class="fas fa-shield-alt mr-2"></i>
+                Your data is secure with end-to-end encryption
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes blob {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+</style>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password-input');
+        const eyeIcon = document.getElementById('eye-icon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    }
+</script>
+{% endblock %}

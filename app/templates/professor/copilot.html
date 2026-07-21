@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Attendance Copilot{% endblock %}
+{% block content %}
+<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="mb-8"><p class="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Explainable AI</p><h1 class="text-3xl font-bold text-gray-900 mt-2">Attendance Copilot</h1><p class="text-gray-600 mt-2">Ask about risk, attendance changes, or the next best faculty action. Insights stay grounded in your roster data.</p></div>
+  <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <form id="copilot-form" class="flex flex-col md:flex-row gap-3"><input id="copilot-question" required minlength="3" class="flex-1 rounded-xl border-gray-200 px-4 py-3" placeholder="Which students are at risk this month?" value="Which students are at risk this month?"><button class="rounded-xl bg-indigo-600 text-white px-6 py-3 font-semibold hover:bg-indigo-700">Ask Copilot</button></form>
+    <div id="copilot-status" class="text-sm text-gray-500 mt-4"></div>
+    <div id="copilot-answer" class="mt-6 hidden"></div>
+  </section>
+</main>
+<script>
+document.getElementById('copilot-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const status = document.getElementById('copilot-status');
+  const answer = document.getElementById('copilot-answer');
+  status.textContent = 'Analysing completed sessions and late-arrival patterns…';
+  try {
+    const response = await fetch('{{ url_for("api.professor_copilot") }}', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:document.getElementById('copilot-question').value})});
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Unable to generate insight');
+    const result = data.result;
+    answer.classList.remove('hidden');
+    answer.innerHTML = `<div class="rounded-xl bg-indigo-50 border border-indigo-100 p-5"><p class="text-lg font-semibold text-gray-900">${escapeHtml(result.answer)}</p><p class="text-xs text-gray-500 mt-3">Based on ${escapeHtml(result.generated_from)}.</p></div><div class="grid md:grid-cols-2 gap-4 mt-4">${result.classes.map(item => `<div class="border rounded-xl p-4"><div class="flex justify-between"><strong>${escapeHtml(item.class_code)}</strong><span class="font-semibold">${item.average_attendance}%</span></div><p class="text-sm text-gray-600 mt-2">${item.at_risk_count} risk signal(s), ${item.late_count} late record(s)</p></div>`).join('')}</div>${result.actions.length ? `<div class="mt-5"><h3 class="font-bold text-gray-900 mb-3">Suggested next actions</h3><div class="space-y-3">${result.actions.map(action => `<div class="border rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"><div><p class="font-semibold">${escapeHtml(action.student_name)} · ${escapeHtml(action.class_code)}</p><p class="text-sm text-gray-600">${escapeHtml(action.message)}</p></div><button class="text-sm rounded-lg bg-indigo-600 text-white px-3 py-2" onclick="sendSuggestionEncoded('${encodeURIComponent(JSON.stringify(action)).replace(/'/g,'%27')}')">Send reminder</button></div>`).join('')}</div></div>` : ''}`;
+    status.textContent = 'Insight ready.';
+  } catch (error) { status.textContent = error.message; }
+});
+function escapeHtml(value) { const div=document.createElement('div'); div.textContent=value ?? ''; return div.innerHTML; }
+async function sendSuggestionEncoded(encoded) { const action = JSON.parse(decodeURIComponent(encoded)); const response = await fetch('/api/professor/interventions', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({class_id:action.class_id, student_id:action.student_id, type:'reminder', message:action.message})}); const data=await response.json(); alert(data.success ? 'Support reminder sent.' : (data.error || 'Could not send reminder.')); }
+</script>
+{% endblock %}

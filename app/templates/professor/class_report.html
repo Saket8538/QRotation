@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Class Report - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="{{ url_for('professor.reports') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <span class="text-gray-900 text-xl font-bold">{{ summary.course.code }} - Report</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Total Students</p>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">{{ summary.total_students }}</p>
+                    </div>
+                    <i class="fas fa-users text-blue-600 text-3xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Total Sessions</p>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">{{ summary.total_sessions }}</p>
+                    </div>
+                    <i class="fas fa-calendar text-green-600 text-3xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Avg Attendance</p>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">{{ summary.average_attendance }}%</p>
+                    </div>
+                    <i class="fas fa-chart-line text-purple-600 text-3xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Low Attendance</p>
+                        <p class="text-3xl font-bold text-red-600 mt-1">{{ low_attendance|length }}</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Attendance Alerts -->
+        {% if low_attendance %}
+        <div class="bg-red-50 rounded-xl border border-red-200 p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-red-900">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Students with Low Attendance (< 75%)
+                </h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-red-100">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-red-900">Student ID</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-red-900">Name</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-red-900">Email</th>
+                            <th class="px-4 py-3 text-right text-sm font-semibold text-red-900">Present</th>
+                            <th class="px-4 py-3 text-right text-sm font-semibold text-red-900">Absent</th>
+                            <th class="px-4 py-3 text-right text-sm font-semibold text-red-900">Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-red-100">
+                        {% for student in low_attendance %}
+                        <tr>
+                            <td class="px-4 py-3 text-sm">{{ student.student_id }}</td>
+                            <td class="px-4 py-3 text-sm font-medium">{{ student.student_name }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600">{{ student.email }}</td>
+                            <td class="px-4 py-3 text-sm text-right">{{ student.present_count }}</td>
+                            <td class="px-4 py-3 text-sm text-right">{{ student.absent_count }}</td>
+                            <td class="px-4 py-3 text-sm text-right">
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                    {{ student.attendance_rate }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All Students Attendance -->
+        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div class="px-6 py-4 border-b bg-gray-50">
+                <h3 class="text-lg font-semibold text-gray-900">All Students</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Student ID</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                            <th class="px-6 py-3 text-right text-sm font-semibold text-gray-700">Present</th>
+                            <th class="px-6 py-3 text-right text-sm font-semibold text-gray-700">Late</th>
+                            <th class="px-6 py-3 text-right text-sm font-semibold text-gray-700">Absent</th>
+                            <th class="px-6 py-3 text-right text-sm font-semibold text-gray-700">Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for student in summary.attendance_data %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 text-sm">{{ student.student_id }}</td>
+                            <td class="px-6 py-4 text-sm font-medium">{{ student.student_name }}</td>
+                            <td class="px-6 py-4 text-sm text-right">{{ student.present_count }}</td>
+                            <td class="px-6 py-4 text-sm text-right">{{ student.late_count }}</td>
+                            <td class="px-6 py-4 text-sm text-right">{{ student.absent_count }}</td>
+                            <td class="px-6 py-4 text-sm text-right">
+                                {% if student.attendance_rate >= 75 %}
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                    {{ student.attendance_rate }}%
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                    {{ student.attendance_rate }}%
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="mt-6 flex space-x-4">
+            <a href="{{ url_for('professor.export_report', class_id=class_instance.id, format='excel') }}" 
+               class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+                <i class="fas fa-file-excel mr-2"></i> Export to Excel
+            </a>
+            <a href="{{ url_for('professor.export_report', class_id=class_instance.id, format='csv') }}" 
+               class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700">
+                <i class="fas fa-file-csv mr-2"></i> Export to CSV
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

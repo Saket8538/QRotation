@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}My Classes - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-gray-700 hover:text-purple-600 mr-2">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    
+                    <a href="{{ url_for('student.dashboard') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <i class="fas fa-book-open text-purple-600 text-2xl mr-3"></i>
+                    <span class="text-gray-900 text-xl font-bold">My Classes</span>
+                </div>
+                <a href="{{ url_for('student.scan') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center">
+                    <i class="fas fa-qrcode mr-2"></i> Scan QR
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        {% if classes %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for class in classes %}
+                <a href="{{ url_for('student.class_detail', class_id=class.id) }}" 
+                   class="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition block">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-book text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-2xl font-bold {% if class.attendance_rate >= 75 %}text-green-600{% elif class.attendance_rate >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                {{ class.attendance_rate }}%
+                            </span>
+                            <p class="text-xs text-gray-500">Attendance</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ class.code }}</h3>
+                    <p class="text-gray-600 mb-4">{{ class.name }}</p>
+                    
+                    <div class="space-y-2 text-sm text-gray-500">
+                        <p><i class="fas fa-user mr-2"></i> {{ class.professor }}</p>
+                        <p><i class="fas fa-map-marker-alt mr-2"></i> {{ class.room or 'TBA' }}</p>
+                        <p><i class="fas fa-clock mr-2"></i> {{ class.schedule }}</p>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">Sessions</span>
+                            <span class="font-medium">{{ class.attended_sessions }}/{{ class.total_sessions }}</span>
+                        </div>
+                        <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-purple-600 h-2 rounded-full" style="width: {{ class.attendance_rate }}%"></div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white rounded-xl shadow-sm border p-12 text-center">
+                <i class="fas fa-folder-open text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Classes Yet</h3>
+                <p class="text-gray-600">You are not enrolled in any classes. Please contact your professor to be enrolled.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

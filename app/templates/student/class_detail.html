@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ class_data.code }} - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-gray-700 hover:text-purple-600 mr-2">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    
+                    <a href="{{ url_for('student.classes') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <span class="text-gray-900 text-xl font-bold">{{ class_data.code }}</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+                                                          
+    <div class="max-w-7xl mx-auto px-4 py-8"                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+        <!-- Class Info -->
+        <div class="bg-white rounded-xl shadow-sm border p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ class_data.name }}</h1>
+                    <p class="text-gray-600 mb-4">{{ class_data.description or 'No description available.' }}</p>
+                    <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <span><i class="fas fa-user mr-1"></i> {{ class_data.professor }}</span>
+                        <span><i class="fas fa-envelope mr-1"></i> {{ class_data.professor_email }}</span>
+                        <span><i class="fas fa-map-marker-alt mr-1"></i> {{ class_data.room or 'TBA' }}</span>
+                        <span><i class="fas fa-clock mr-1"></i> {{ class_data.schedule }}</span>
+                        <span><i class="fas fa-star mr-1"></i> {{ class_data.credits }} credits</span>
+                    </div>
+                </div>
+                <div class="mt-4 md:mt-0 text-center">
+                    <div class="text-4xl font-bold {% if stats.attendance_rate >= 75 %}text-green-600{% elif stats.attendance_rate >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                        {{ stats.attendance_rate }}%
+                    </div>
+                    <p class="text-gray-500 text-sm">Attendance Rate</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calendar text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Total Sessions</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.total_sessions }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Attended</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.attended_sessions }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-times text-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Missed</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.total_sessions - stats.attended_sessions }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Upcoming Sessions -->
+            <div class="bg-white rounded-xl shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-calendar-alt mr-2 text-blue-500"></i> Upcoming Sessions
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if upcoming_sessions %}
+                        <div class="space-y-3">
+                            {% for session in upcoming_sessions[:5] %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg {% if session.is_active %}border-2 border-green-500 bg-green-50{% endif %}">
+                                <div>
+                                    <p class="font-medium text-gray-900">Session {{ session.session_number }}</p>
+                                    <p class="text-sm text-gray-500">{{ session.date.strftime('%b %d, %Y') }} • {{ session.start_time }}</p>
+                                </div>
+                                {% if session.is_active %}
+                                    <a href="{{ url_for('student.scan') }}" class="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600">
+                                        Scan Now
+                                    </a>
+                                {% else %}
+                                    <span class="text-gray-400 text-sm">{{ session.status | capitalize }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-center py-4">No upcoming sessions</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Past Sessions -->
+            <div class="bg-white rounded-xl shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-history mr-2 text-gray-500"></i> Past Sessions
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if past_sessions %}
+                        <div class="space-y-3 max-h-80 overflow-y-auto">
+                            {% for session in past_sessions | reverse %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-gray-900">Session {{ session.session_number }}</p>
+                                    <p class="text-sm text-gray-500">{{ session.date.strftime('%b %d, %Y') }}</p>
+                                </div>
+                                {% if session.attendance %}
+                                    <span class="px-3 py-1 rounded-full text-sm font-medium
+                                        {% if session.attendance.status == 'present' %}bg-green-100 text-green-800
+                                        {% elif session.attendance.status == 'late' %}bg-yellow-100 text-yellow-800
+                                        {% elif session.attendance.status == 'excused' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ session.attendance.status | capitalize }}
+                                    </span>
+                                {% elif session.status == 'cancelled' %}
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">Cancelled</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Absent</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-center py-4">No past sessions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

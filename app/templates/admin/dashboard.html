@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Institution Control Centre{% endblock %}
+{% block content %}
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="mb-8">
+        <p class="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Governance</p>
+        <h1 class="text-3xl font-bold text-gray-900 mt-2">Institution Control Centre</h1>
+        <p class="text-gray-600 mt-2">Monitor adoption, integrity signals, appeals, and immutable attendance actions.</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {% for label, value in [('Students', counts.students), ('Faculty', counts.professors), ('Active classes', counts.classes), ('Active enrollments', counts.enrollments), ('Sessions', counts.sessions), ('Open fraud alerts', counts.open_fraud_alerts), ('Pending appeals', counts.pending_appeals)] %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wide">{{ label }}</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2">{{ value }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="text-xl font-bold text-gray-900">Recent audit history</h2>
+            <span class="text-xs text-gray-500">Append-only governance trail</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-left text-gray-500"><tr><th class="p-4">Time</th><th class="p-4">Action</th><th class="p-4">Entity</th><th class="p-4">Actor</th></tr></thead>
+                <tbody class="divide-y divide-gray-100">
+                {% for entry in recent_audit %}
+                <tr><td class="p-4 whitespace-nowrap">{{ entry.created_at.strftime('%Y-%m-%d %H:%M') if entry.created_at else '—' }}</td><td class="p-4 font-medium">{{ entry.action }}</td><td class="p-4">{{ entry.entity_type }} / {{ entry.entity_id }}</td><td class="p-4">{{ entry.actor_id or 'system' }}</td></tr>
+                {% else %}<tr><td colspan="4" class="p-8 text-center text-gray-500">No audit activity yet.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+{% endblock %}

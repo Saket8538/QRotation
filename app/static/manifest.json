@@ -1,0 +1,15 @@
+{
+  "name": "QRotation",
+  "short_name": "Attendance",
+  "start_url": "/student/scan",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f3ff",
+  "theme_color": "#7c3aed",
+  "description": "Privacy-first attendance and student success companion",
+  "shortcuts": [
+    {"name": "Scan attendance", "url": "/student/scan", "icons": []},
+    {"name": "My attendance", "url": "/student/attendance", "icons": []}
+  ]
+}

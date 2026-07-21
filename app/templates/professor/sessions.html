@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Sessions - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-gray-700 hover:text-blue-600 mr-2">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    
+                    <a href="{{ url_for('professor.dashboard') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <i class="fas fa-calendar text-blue-600 text-2xl mr-3"></i>
+                    <span class="text-gray-900 text-xl font-bold">All Sessions</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Active Sessions -->
+        {% if active_sessions %}
+        <div class="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-semibold text-green-800 mb-4">
+                <i class="fas fa-broadcast-tower mr-2 animate-pulse"></i> Active Sessions
+            </h2>
+            <div class="space-y-4">
+                {% for session in active_sessions %}
+                <div class="bg-white rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ session.class_code }} - Session {{ session.session_number }}</h3>
+                        <p class="text-sm text-gray-500">
+                            Started at {{ session.start_time }}
+                            • {{ session.attendance_count }} students present
+                        </p>
+                    </div>
+                    <a href="{{ url_for('professor.session_detail', session_id=session.id) }}" 
+                       class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                        <i class="fas fa-qrcode mr-2"></i> View QR
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All Sessions -->
+        <div class="bg-white rounded-xl shadow-sm border">
+            <div class="p-6 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Session History</h2>
+            </div>
+            <div class="overflow-x-auto">
+                {% if sessions %}
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Session</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attendance</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for session in sessions %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-900">{{ session.class_code }}</div>
+                                    <div class="text-sm text-gray-500">{{ session.class_name }}</div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-900">#{{ session.session_number }}</td>
+                                <td class="px-6 py-4 text-gray-500">{{ session.date.strftime('%b %d, %Y') }}</td>
+                                <td class="px-6 py-4 text-gray-900">{{ session.attendance_count }}/{{ session.total_students }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium
+                                        {% if session.status == 'active' %}bg-green-100 text-green-800
+                                        {% elif session.status == 'completed' %}bg-blue-100 text-blue-800
+                                        {% elif session.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ session.status | capitalize }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="{{ url_for('professor.session_detail', session_id=session.id) }}" 
+                                       class="text-blue-600 hover:text-blue-800">
+                                        View Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="p-12 text-center text-gray-500">
+                        <i class="fas fa-calendar-times text-4xl mb-4"></i>
+                        <p>No sessions found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

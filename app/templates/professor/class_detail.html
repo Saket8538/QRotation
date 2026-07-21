@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}{{ class_data.code }} - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="{{ url_for('professor.classes') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <span class="text-gray-900 text-xl font-bold">{{ class_data.code }}</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    {% if active_session %}
+                        <a href="{{ url_for('professor.session_detail', session_id=active_session.id) }}" 
+                           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                            <i class="fas fa-qrcode mr-2"></i> View QR
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('professor.start_session', class_id=class_data.id) }}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-play mr-2"></i> Start Session
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Class Info -->
+        <div class="bg-white rounded-xl shadow-sm border p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ class_data.name }}</h1>
+                    <p class="text-gray-600 mb-4">{{ class_data.description or 'No description available.' }}</p>
+                    <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <span><i class="fas fa-hashtag mr-1"></i> {{ class_data.code }}</span>
+                        <span><i class="fas fa-map-marker-alt mr-1"></i> {{ class_data.room or 'TBA' }}</span>
+                        <span><i class="fas fa-clock mr-1"></i> {{ class_data.schedule }}</span>
+                        <span><i class="fas fa-calendar mr-1"></i> {{ class_data.period }}</span>
+                    </div>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-4 text-center">
+                    <div class="px-6 py-4 bg-blue-50 rounded-lg">
+                        <div class="text-3xl font-bold text-blue-600">{{ class_data.enrolled }}</div>
+                        <p class="text-sm text-gray-500">Students</p>
+                    </div>
+                    <div class="px-6 py-4 bg-green-50 rounded-lg">
+                        <div class="text-3xl font-bold text-green-600">{{ stats.average_attendance if stats else 0 }}%</div>
+                        <p class="text-sm text-gray-500">Avg Attendance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-xl shadow-sm border mb-6">
+            <div class="border-b">
+                <nav class="flex -mb-px">
+                    <button onclick="showTab('students')" id="tab-students" 
+                        class="tab-btn px-6 py-4 text-blue-600 border-b-2 border-blue-600 font-medium">
+                        <i class="fas fa-users mr-2"></i> Students
+                    </button>
+                    <button onclick="showTab('sessions')" id="tab-sessions" 
+                        class="tab-btn px-6 py-4 text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-calendar mr-2"></i> Sessions
+                    </button>
+                    <button onclick="showTab('attendance')" id="tab-attendance" 
+                        class="tab-btn px-6 py-4 text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-chart-bar mr-2"></i> Attendance
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Students Tab -->
+            <div id="panel-students" class="tab-panel p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Enrolled Students</h3>
+                    <button onclick="showEnrollModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-user-plus mr-2"></i> Add Student
+                    </button>
+                </div>
+                {% if students %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attendance</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                {% for student in students %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-4">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                                                <i class="fas fa-user text-gray-400"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-gray-900">{{ student.name }}</div>
+                                                <div class="text-sm text-gray-500">{{ student.email }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 text-gray-500">{{ student.student_id }}</td>
+                                    <td class="px-4 py-4">
+                                        <span class="font-medium {% if student.attendance_rate >= 75 %}text-green-600{% elif student.attendance_rate >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                            {{ student.attendance_rate }}%
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <form method="POST" action="{{ url_for('professor.remove_student', class_id=class_data.id, student_id=student.id) }}" 
+                                              onsubmit="return confirm('Remove this student from the class?')">
+                                            <button type="submit" class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-users text-4xl mb-4"></i>
+                        <p>No students enrolled yet</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Sessions Tab -->
+            <div id="panel-sessions" class="tab-panel p-6 hidden">
+                {% if past_sessions or upcoming_sessions %}
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">Upcoming Sessions</h3>
+                        {% if upcoming_sessions %}
+                        <div class="space-y-3">
+                            {% for session in upcoming_sessions %}
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg {% if session.status == 'active' %}border-2 border-green-500 bg-green-50{% endif %}">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Session {{ session.session_number }}</h4>
+                                    <p class="text-sm text-gray-500">{{ session.date.strftime('%b %d, %Y') }} • {{ session.start_time }}</p>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-sm text-gray-500">{{ session.attendance_count or 0 }} attended</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-medium
+                                    {% if session.status == 'active' %}bg-green-100 text-green-800
+                                    {% elif session.status == 'completed' %}bg-blue-100 text-blue-800
+                                    {% elif session.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ session.status | capitalize }}
+                                </span>
+                                    {% if session.status == 'active' %}
+                                        <a href="{{ url_for('professor.session_detail', session_id=session.id) }}" 
+                                           class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                                            View QR
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-gray-500 text-sm">No upcoming sessions</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Past Sessions</h3>
+                        {% if past_sessions %}
+                        <div class="space-y-3">
+                            {% for session in past_sessions %}
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Session {{ session.session_number }}</h4>
+                                    <p class="text-sm text-gray-500">{{ session.date.strftime('%b %d, %Y') }} • {{ session.start_time }}</p>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-sm text-gray-500">{{ session.attendance_count or 0 }} attended</span>
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium
+                                        {% if session.status == 'completed' %}bg-blue-100 text-blue-800
+                                        {% elif session.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ session.status | capitalize }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-gray-500 text-sm">No past sessions</p>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-calendar text-4xl mb-4"></i>
+                        <p>No sessions yet</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Attendance Tab -->
+            <div id="panel-attendance" class="tab-panel p-6 hidden">
+                <div class="text-center py-8">
+                    <i class="fas fa-chart-bar text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Attendance analytics coming soon</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enroll Modal -->
+<div id="enroll-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Add Student</h3>
+        <form method="POST" action="{{ url_for('professor.add_enrollment', class_id=class_data.id) }}">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Student ID or Email</label>
+                <input type="text" name="student_identifier" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter student ID or email">
+            </div>
+            <div class="flex space-x-3">
+                <button type="button" onclick="hideEnrollModal()" 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showTab(tabName) {
+    // Hide all panels
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+    // Remove active from all tabs
+    document.querySelectorAll('.tab-btn').forEach(t => {
+        t.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+        t.classList.add('text-gray-500');
+    });
+    // Show selected panel
+    document.getElementById('panel-' + tabName).classList.remove('hidden');
+    // Activate tab
+    const tab = document.getElementById('tab-' + tabName);
+    tab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+    tab.classList.remove('text-gray-500');
+}
+
+function showEnrollModal() {
+    document.getElementById('enroll-modal').classList.remove('hidden');
+}
+
+function hideEnrollModal() {
+    document.getElementById('enroll-modal').classList.add('hidden');
+}
+</script>
+{% endblock %}

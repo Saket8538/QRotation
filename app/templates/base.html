@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7c3aed">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <title>{% block title %}QRotation{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe',
+                            300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6',
+                            600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95',
+                        },
+                        secondary: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+                            300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+                            600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        
+        /* Vibrant Gradient backgrounds with animation */
+        .gradient-bg { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); 
+            background-size: 200% 200%;
+            animation: gradientShift 15s ease infinite;
+        }
+        .gradient-bg-primary { 
+            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a855f7 100%); 
+            background-size: 200% 200%;
+            animation: gradientShift 10s ease infinite;
+        }
+        .gradient-bg-secondary { 
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%); 
+            background-size: 200% 200%;
+            animation: gradientShift 10s ease infinite;
+        }
+        .gradient-bg-success { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #34d399 100%); 
+            background-size: 200% 200%;
+            animation: gradientShift 10s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .float-animation { animation: float 6s ease-in-out infinite; }
+        
+        /* Fade and slide in animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-out; }
+        .animate-fade-in-down { animation: fadeInDown 0.6s ease-out; }
+        .animate-fade-in-left { animation: fadeInLeft 0.6s ease-out; }
+        .animate-fade-in-right { animation: fadeInRight 0.6s ease-out; }
+        .animate-zoom-in { animation: zoomIn 0.5s ease-out; }
+        
+        /* Stagger delays for child elements */
+        .stagger-delay-1 { animation-delay: 0.1s; }
+        .stagger-delay-2 { animation-delay: 0.2s; }
+        .stagger-delay-3 { animation-delay: 0.3s; }
+        .stagger-delay-4 { animation-delay: 0.4s; }
+        
+        /* Glass effect with stronger blur */
+        .glass-effect { 
+            backdrop-filter: blur(20px) saturate(180%); 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        /* Enhanced card hover effects */
+        .card-hover { 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            position: relative;
+            overflow: hidden;
+        }
+        .card-hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+        .card-hover:hover::before {
+            left: 100%;
+        }
+        .card-hover:hover { 
+            transform: translateY(-8px) scale(1.02); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+        }
+        
+        /* Pulse animation for cards */
+        @keyframes cardPulse {
+            0%, 100% { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+            50% { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        }
+        
+        .card-pulse { animation: cardPulse 2s ease-in-out infinite; }
+        
+        /* Enhanced button styles with ripple effect */
+        .btn-primary { 
+            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); 
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        .btn-primary:hover { 
+            background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%); 
+            transform: translateY(-2px) scale(1.05); 
+            box-shadow: 0 15px 30px -10px rgba(124, 58, 237, 0.5); 
+        }
+        
+        .btn-secondary { 
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .btn-secondary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        .btn-secondary:hover { 
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+            transform: translateY(-2px) scale(1.05); 
+            box-shadow: 0 15px 30px -10px rgba(37, 99, 235, 0.5); 
+        }
+        
+        .btn-success { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-success::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .btn-success:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        .btn-success:hover { 
+            background: linear-gradient(135deg, #059669 0%, #047857 100%); 
+            transform: translateY(-2px) scale(1.05); 
+            box-shadow: 0 15px 30px -10px rgba(16, 185, 129, 0.5); 
+        }
+        
+        /* Enhanced sidebar styles */
+        .sidebar-link { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .sidebar-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.2) 0%, transparent 100%);
+            transition: width 0.3s ease;
+        }
+        .sidebar-link:hover { 
+            background: rgba(139, 92, 246, 0.1);
+            transform: translateX(5px);
+        }
+        .sidebar-link:hover::before {
+            width: 100%;
+        }
+        .sidebar-link.active { 
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.2) 0%, transparent 100%); 
+            border-left: 4px solid #8b5cf6;
+            font-weight: 600;
+        }
+        
+        /* Enhanced QR code animation */
+        .qr-glow { animation: qrPulse 2s ease-in-out infinite; }
+        @keyframes qrPulse { 
+            0%, 100% { 
+                box-shadow: 0 0 25px rgba(34, 197, 94, 0.5),
+                            0 0 50px rgba(34, 197, 94, 0.3); 
+                transform: scale(1);
+            } 
+            50% { 
+                box-shadow: 0 0 35px rgba(34, 197, 94, 0.8),
+                            0 0 70px rgba(34, 197, 94, 0.5); 
+                transform: scale(1.02);
+            } 
+        }
+        
+        /* Rotating border animation */
+        @keyframes rotateBorder {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .rotate-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #667eea);
+            border-radius: inherit;
+            z-index: -1;
+            animation: rotateBorder 3s linear infinite;
+            background-size: 200%;
+        }
+        
+        /* Toast animation with bounce */
+        .toast-slide { animation: slideInBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        @keyframes slideInBounce { 
+            from { transform: translateX(120%) scale(0.8); opacity: 0; } 
+            to { transform: translateX(0) scale(1); opacity: 1; } 
+        }
+        
+        /* Status badges with glow */
+        .badge-present { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        .badge-late { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+        .badge-absent { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        .badge-excused { 
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        .badge-active { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            animation: pulseGlow 2s infinite;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.6);
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { 
+                box-shadow: 0 4px 15px rgba(16, 185, 129, 0.6);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 6px 25px rgba(16, 185, 129, 0.8);
+                transform: scale(1.05);
+            }
+        }
+        
+        /* Live indicator with stronger blink */
+        .live-indicator { animation: blink 1.5s ease-in-out infinite; }
+        @keyframes blink { 
+            0%, 100% { opacity: 1; transform: scale(1); } 
+            50% { opacity: 0.2; transform: scale(0.9); } 
+        }
+        
+        /* Shimmer effect for loading states */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+        
+        /* Progress bar animation */
+        @keyframes progressFill {
+            from { width: 0%; }
+        }
+        
+        .progress-animate {
+            animation: progressFill 1s ease-out;
+        }
+        
+        /* Bounce in animation for icons */
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .bounce-in { animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        
+        /* Custom scrollbar with gradient */
+        ::-webkit-scrollbar { width: 8px; height: 8px; } 
+        ::-webkit-scrollbar-track { background: #f1f5f9; } 
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%); 
+            border-radius: 4px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { 
+            background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%); 
+        }
+        
+        /* Particle effect container */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: particleFloat 15s linear infinite;
+        }
+        
+        @keyframes particleFloat {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+        
+        /* ===== DARK MODE STYLES ===== */
+        .dark-mode {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --border-color: #4a5568;
+        }
+        
+        .dark-mode body {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #f7fafc;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #2d3748 !important;
+            color: #f7fafc;
+        }
+        
+        .dark-mode .bg-gray-50 {
+            background-color: #1a202c !important;
+        }
+        
+        .dark-mode .text-gray-900 {
+            color: #f7fafc !important;
+        }
+        
+        .dark-mode .text-gray-600,
+        .dark-mode .text-gray-500 {
+            color: #cbd5e0 !important;
+        }
+        
+        .dark-mode .border-gray-200,
+        .dark-mode .border {
+            border-color: #4a5568 !important;
+        }
+        
+        .dark-mode .shadow-sm,
+        .dark-mode .shadow-md,
+        .dark-mode .shadow-lg,
+        .dark-mode .shadow-xl {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .dark-mode ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        
+        .dark-mode ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* ===== NOTIFICATION CENTER ===== */
+        .notification-dropdown {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            transition: all 0.2s ease;
+        }
+        
+        .notification-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        .notification-unread {
+            position: relative;
+        }
+        
+        .notification-unread::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        /* ===== LOADING STATES ===== */
+        .loading-spinner {
+            border: 3px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+        }
+        
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s ease-in-out infinite;
+        }
+        
+        .dark-mode .skeleton {
+            background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+            background-size: 200% 100%;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .loading-overlay {
+            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        /* ===== EMPTY STATES ===== */
+        .empty-state-illustration {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .empty-state-icon {
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        /* ===== BREADCRUMBS ===== */
+        .breadcrumb-item {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            margin: 0 0.5rem;
+            color: #cbd5e0;
+        }
+        
+        .breadcrumb-item a {
+            transition: all 0.2s ease;
+        }
+        
+        .breadcrumb-item a:hover {
+            color: #8b5cf6;
+            transform: translateX(-2px);
+        }
+        
+        .dark-mode .breadcrumb-item:not(:last-child)::after {
+            color: #4a5568;
+        }
+        
+        /* ===== SEARCH BAR ===== */
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .search-result-item {
+            transition: all 0.2s ease;
+        }
+        
+        .search-result-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .search-highlight {
+            background: rgba(139, 92, 246, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        /* ===== MOBILE MENU ===== */
+        .mobile-menu {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+        
+        .mobile-menu-overlay {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .mobile-menu-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .hamburger-line {
+            transition: all 0.3s ease;
+        }
+        
+        .hamburger.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        
+        .hamburger.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none !important;
+            }
+            
+            .mobile-only {
+                display: block !important;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none !important;
+            }
+            
+            .desktop-only {
+                display: block !important;
+            }
+        }
+        
+        /* ===== UTILITY ANIMATIONS ===== */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .scale-in {
+            animation: scaleIn 0.2s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen antialiased transition-colors duration-300"">    <!-- Global UI Components -->
+    
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay" class="mobile-menu-overlay fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="mobile-menu fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-800 shadow-2xl z-50 md:hidden overflow-y-auto">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-graduation-cap text-purple-600 text-2xl"></i>
+                    <span class="text-xl font-bold text-gray-900 dark:text-white">Menu</span>
+                </div>
+                <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile menu items will be populated by JavaScript based on current page -->
+            <nav id="mobile-nav-items" class="space-y-2">
+                <!-- Dynamic content -->
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Global Toolbar (Dark Mode, Notifications, Search) -->
+    {% if current_user.is_authenticated %}
+    <div class="fixed top-0 right-0 z-30 flex items-center space-x-2 p-4">
+        <!-- Search Button (Mobile) -->
+        <button onclick="toggleGlobalSearch()" class="md:hidden w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-900 transition">
+            <i class="fas fa-search text-purple-600"></i>
+        </button>
+        
+        <!-- Notifications -->
+        <div class="relative">
+            <button onclick="toggleNotifications()" class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-900 transition relative">
+                <i class="fas fa-bell text-purple-600"></i>
+                <span id="notification-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center notification-badge">
+                    0
+                </span>
+            </button>
+            
+            <!-- Notifications Dropdown -->
+            <div id="notifications-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border-2 border-purple-100 dark:border-purple-900 scale-in overflow-hidden">
+                <div class="p-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-lg flex items-center">
+                            <i class="fas fa-bell mr-2"></i>
+                            Notifications
+                        </h3>
+                        <button onclick="markAllAsRead()" class="text-xs bg-white/20 px-3 py-1 rounded-full hover:bg-white/30 transition">
+                            Mark all read
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="notifications-list" class="notification-dropdown p-2">
+                    <!-- Notifications will be loaded dynamically -->
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-bell-slash text-4xl mb-2"></i>
+                        <p>No new notifications</p>
+                    </div>
+                </div>
+                
+                <div class="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
+                    <a href="#" class="text-purple-600 hover:text-purple-700 text-sm font-semibold">
+                        View all notifications →
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dark Mode Toggle -->
+        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-900 transition">
+            <i id="theme-icon" class="fas fa-moon text-purple-600"></i>
+        </button>
+    </div>
+    {% endif %}
+    
+    <!-- Global Search Bar -->
+    <div id="global-search-overlay" class="hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" onclick="closeGlobalSearch()"></div>
+    <div id="global-search-container" class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-50 px-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border-2 border-purple-200 dark:border-purple-900 scale-in overflow-hidden">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input 
+                        type="text" 
+                        id="global-search-input"
+                        placeholder="Search classes, students, sessions..." 
+                        class="w-full pl-12 pr-12 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-500/30 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        onkeyup="performGlobalSearch(this.value)"
+                    />
+                    <button onclick="closeGlobalSearch()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="search-results" class="search-results p-4 max-h-96">
+                <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-search text-4xl mb-2"></i>
+                    <p>Start typing to search...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Breadcrumbs Container (will be populated by pages) -->
+    <div id="breadcrumbs-container" class="hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <nav class="max-w-7xl mx-auto">
+            <ol id="breadcrumbs" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <!-- Breadcrumbs will be inserted here -->
+            </ol>
+        </nav>
+    </div>
+    
+    <!-- Loading Overlay (Global) -->
+    <div id="global-loading" class="hidden fixed inset-0 loading-overlay z-50 flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl">
+            <div class="flex flex-col items-center">
+                <div class="loading-spinner w-16 h-16 mb-4"></div>
+                <p class="text-gray-700 dark:text-gray-300 font-semibold">Loading...</p>
+            </div>
+        </div>
+    </div>
+        <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-2" id="toast-container">
+                {% for category, message in messages %}
+                    <div class="toast-slide max-w-sm px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3
+                        {% if category == 'error' %}bg-gradient-to-r from-red-500 to-red-600 text-white
+                        {% elif category == 'success' %}bg-gradient-to-r from-green-500 to-green-600 text-white
+                        {% elif category == 'warning' %}bg-gradient-to-r from-yellow-500 to-yellow-600 text-white
+                        {% else %}bg-gradient-to-r from-blue-500 to-blue-600 text-white{% endif %}">
+                        <i class="fas {% if category == 'error' %}fa-exclamation-circle{% elif category == 'success' %}fa-check-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                        <span class="text-sm font-medium flex-1">{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100 transition"><i class="fas fa-times"></i></button>
+                    </div>
+                {% endfor %}
+            </div>
+            <script>setTimeout(() => { document.querySelectorAll('#toast-container > div').forEach((el, i) => { setTimeout(() => el.remove(), i * 200); }); }, 5000);</script>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <!-- Global Scripts -->
+    <script>
+        // Real-time clock
+        function updateClock() {
+            const now = new Date();
+            document.querySelectorAll('.real-time-clock').forEach(el => {
+                el.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Socket.io connection
+        let socket = null;
+        function initSocket() {
+            if (typeof io !== 'undefined') {
+                socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
+                socket.on('session_started', (data) => {
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification(data.title || 'Class session started', {body: data.message || 'Open the scanner to mark attendance.'});
+                    }
+                    loadNotifications();
+                });
+                socket.on('connect', () => console.log('🔌 Socket connected'));
+                socket.on('disconnect', () => console.log('🔌 Socket disconnected'));
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initSocket);
+        
+        // ===== DARK MODE FUNCTIONALITY =====
+        function toggleDarkMode() {
+            const html = document.getElementById('html-root');
+            const icon = document.getElementById('theme-icon');
+            const isDark = html.classList.toggle('dark-mode');
+            
+            // Update icon
+            if (isDark) {
+                icon.className = 'fas fa-sun text-yellow-400';
+            } else {
+                icon.className = 'fas fa-moon text-purple-600';
+            }
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+        }
+        
+        // Load dark mode preference
+        function loadDarkMode() {
+            const darkMode = localStorage.getItem('darkMode');
+            const html = document.getElementById('html-root');
+            const icon = document.getElementById('theme-icon');
+            
+            if (darkMode === 'enabled') {
+                html.classList.add('dark-mode');
+                if (icon) icon.className = 'fas fa-sun text-yellow-400';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadDarkMode);
+        
+        // ===== NOTIFICATION CENTER =====
+        let notifications = [];
+        
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notifications-dropdown');
+            dropdown.classList.toggle('hidden');
+            
+            // Load notifications if opening
+            if (!dropdown.classList.contains('hidden')) {
+                loadNotifications();
+            }
+        }
+        
+        function notificationIcon(type) {
+            if (type === 'session_started') return ['fa-chalkboard-teacher', 'text-blue-500'];
+            if (type === 'attendance_recorded') return ['fa-check-circle', 'text-green-500'];
+            if (type === 'appeal_reviewed') return ['fa-clipboard-check', 'text-amber-500'];
+            return ['fa-bell', 'text-purple-500'];
+        }
+
+        function relativeTime(value) {
+            const seconds = Math.max(0, Math.round((Date.now() - new Date(value).getTime()) / 1000));
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return `${Math.round(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.round(seconds / 3600)}h ago`;
+            return `${Math.round(seconds / 86400)}d ago`;
+        }
+
+        async function loadNotifications() {
+            const notificationsList = document.getElementById('notifications-list');
+            const badge = document.getElementById('notification-badge');
+            if (!notificationsList || !badge) return;
+            try {
+                const response = await fetch('/api/notifications?limit=20', {headers: {'Accept': 'application/json'}});
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'Unable to load notifications');
+                notifications = data.notifications || [];
+                badge.textContent = data.unread_count || '';
+                badge.classList.toggle('hidden', !data.unread_count);
+                if (!notifications.length) {
+                    notificationsList.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400"><i class="fas fa-bell-slash text-4xl mb-2"></i><p>No new notifications</p></div>';
+                    return;
+                }
+                notificationsList.innerHTML = notifications.map(notif => {
+                    const icon = notificationIcon(notif.type);
+                    const safeTitle = escapeNotificationText(notif.title);
+                    const safeMessage = escapeNotificationText(notif.message);
+                    return `<div class="notification-item ${notif.is_read ? '' : 'notification-unread'} p-3 rounded-xl cursor-pointer" data-notification-id="${notif.id}"><div class="flex items-start space-x-3"><div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center flex-shrink-0"><i class="fas ${icon[0]} ${icon[1]}"></i></div><div class="flex-1 min-w-0"><p class="font-semibold text-gray-900 dark:text-white text-sm">${safeTitle}</p><p class="text-gray-600 dark:text-gray-400 text-xs mt-1">${safeMessage}</p><p class="text-gray-400 dark:text-gray-500 text-xs mt-1">${relativeTime(notif.created_at)}</p></div>${notif.is_read ? '' : '<div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>'}</div></div>`;
+                }).join('');
+                notificationsList.querySelectorAll('[data-notification-id]').forEach(item => item.addEventListener('click', () => markAsRead(item.dataset.notificationId)));
+            } catch (error) {
+                notificationsList.innerHTML = '<div class="text-center py-8 text-gray-500"><p>Notifications are unavailable offline.</p></div>';
+            }
+        }
+
+        function escapeNotificationText(value) {
+            const div = document.createElement('div');
+            div.textContent = value || '';
+            return div.innerHTML;
+        }
+
+        async function markAsRead(id) {
+            await fetch(`/api/notifications/${encodeURIComponent(id)}/read`, {method: 'POST'});
+            const notification = notifications.find(item => item.id === id);
+            if (notification && notification.link) window.location.href = notification.link;
+            else loadNotifications();
+        }
+
+        async function markAllAsRead() {
+            await fetch('/api/notifications/read-all', {method: 'POST'});
+            loadNotifications();
+        }
+
+        function enableBrowserNotifications() {
+            if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+        }
+
+        setInterval(() => loadNotifications(), 30000);
+        document.addEventListener('DOMContentLoaded', () => { loadNotifications(); enableBrowserNotifications(); });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const notifDropdown = document.getElementById('notifications-dropdown');
+            const notifButton = event.target.closest('button[onclick="toggleNotifications()"]');
+            
+            if (!notifButton && notifDropdown && !notifDropdown.contains(event.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+        
+        // ===== GLOBAL SEARCH =====
+        function toggleGlobalSearch() {
+            const overlay = document.getElementById('global-search-overlay');
+            const container = document.getElementById('global-search-container');
+            const input = document.getElementById('global-search-input');
+            
+            overlay.classList.toggle('hidden');
+            container.classList.toggle('hidden');
+            
+            if (!container.classList.contains('hidden')) {
+                input.focus();
+            }
+        }
+        
+        function closeGlobalSearch() {
+            document.getElementById('global-search-overlay').classList.add('hidden');
+            document.getElementById('global-search-container').classList.add('hidden');
+            document.getElementById('global-search-input').value = '';
+            document.getElementById('search-results').innerHTML = `
+                <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-search text-4xl mb-2"></i>
+                    <p>Start typing to search...</p>
+                </div>
+            `;
+        }
+        
+        let searchTimeout;
+        function performGlobalSearch(query) {
+            clearTimeout(searchTimeout);
+            
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (!query || query.length < 2) {
+                resultsContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-search text-4xl mb-2"></i>
+                        <p>Start typing to search...</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show loading state
+            resultsContainer.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="loading-spinner w-12 h-12 mx-auto mb-4"></div>
+                    <p class="text-gray-500 dark:text-gray-400">Searching...</p>
+                </div>
+            `;
+            
+            // Debounce search
+            searchTimeout = setTimeout(() => {
+                // Simulate search results (replace with actual API call)
+                const mockResults = [
+                    {
+                        type: 'class',
+                        title: 'CS101 - Introduction to Programming',
+                        subtitle: 'Computer Science',
+                        icon: 'fa-book',
+                        url: '#'
+                    },
+                    {
+                        type: 'student',
+                        title: 'John Doe',
+                        subtitle: 'Student ID: 2021001',
+                        icon: 'fa-user-graduate',
+                        url: '#'
+                    },
+                    {
+                        type: 'session',
+                        title: 'Database Systems - Lecture 5',
+                        subtitle: 'Active Session',
+                        icon: 'fa-calendar-check',
+                        url: '#'
+                    }
+                ].filter(result => 
+                    result.title.toLowerCase().includes(query.toLowerCase()) ||
+                    result.subtitle.toLowerCase().includes(query.toLowerCase())
+                );
+                
+                if (mockResults.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-search-minus text-4xl mb-2"></i>
+                            <p>No results found for "${query}"</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                resultsContainer.innerHTML = mockResults.map(result => `
+                    <a href="${result.url}" class="search-result-item block p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center flex-shrink-0">
+                                <i class="fas ${result.icon} text-purple-600"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-gray-900 dark:text-white">${highlightQuery(result.title, query)}</p>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">${result.subtitle}</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                        </div>
+                    </a>
+                `).join('');
+            }, 300);
+        }
+        
+        function highlightQuery(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+        
+        // Close search with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeGlobalSearch();
+            }
+            
+            // Open search with Ctrl/Cmd + K
+            if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+                event.preventDefault();
+                toggleGlobalSearch();
+            }
+        });
+        
+        // ===== MOBILE MENU =====
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            if (menu.classList.contains('active')) {
+                loadMobileMenuItems();
+            }
+        }
+        
+        function loadMobileMenuItems() {
+            // Get current navigation items from the page
+            const navItems = document.getElementById('mobile-nav-items');
+            const currentPath = window.location.pathname;
+            
+            // Determine menu items based on user role and current page
+            let menuItems = [];
+            
+            if (currentPath.includes('/student/')) {
+                menuItems = [
+                    { icon: 'fa-home', text: 'Dashboard', url: '/student/dashboard' },
+                    { icon: 'fa-book', text: 'My Classes', url: '/student/classes' },
+                    { icon: 'fa-qrcode', text: 'Scan QR', url: '/student/scan' },
+                    { icon: 'fa-calendar-check', text: 'Attendance', url: '/student/attendance' },
+                    { icon: 'fa-shield-alt', text: 'My Devices', url: '/student/devices' },
+                    { icon: 'fa-user', text: 'Profile', url: '/student/profile' }
+                ];
+            } else if (currentPath.includes('/professor/')) {
+                menuItems = [
+                    { icon: 'fa-home', text: 'Dashboard', url: '/professor/dashboard' },
+                    { icon: 'fa-book', text: 'My Classes', url: '/professor/classes' },
+                    { icon: 'fa-calendar', text: 'Sessions', url: '/professor/sessions' },
+                    { icon: 'fa-chart-line', text: 'Analytics', url: '/professor/analytics' },
+                    { icon: 'fa-file-alt', text: 'Reports', url: '/professor/reports' },
+                    { icon: 'fa-robot', text: 'Attendance Copilot', url: '/professor/copilot' },
+                    { icon: 'fa-shield-alt', text: 'Integrity Alerts', url: '/professor/fraud-alerts' },
+                    { icon: 'fa-inbox', text: 'Appeals', url: '/professor/appeals' },
+                    { icon: 'fa-user', text: 'Profile', url: '/professor/profile' }
+                ];
+            } else if (currentPath.includes('/admin/')) {
+                menuItems = [
+                    { icon: 'fa-shield-alt', text: 'Control Centre', url: '/admin/dashboard' },
+                    { icon: 'fa-list-alt', text: 'Audit API', url: '/admin/api/audit' }
+                ];
+            } else {
+                menuItems = [
+                    { icon: 'fa-home', text: 'Home', url: '/' },
+                    { icon: 'fa-info-circle', text: 'About', url: '/about' },
+                    { icon: 'fa-sign-in-alt', text: 'Login', url: '/auth/login' }
+                ];
+            }
+            
+            navItems.innerHTML = menuItems.map(item => `
+                <a href="${item.url}" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900 transition ${currentPath === item.url ? 'bg-purple-100 dark:bg-purple-900 text-purple-600' : 'text-gray-700 dark:text-gray-300'}">
+                    <i class="fas ${item.icon} w-5"></i>
+                    <span class="font-medium">${item.text}</span>
+                </a>
+            `).join('');
+        }
+        
+        // Close mobile menu when clicking overlay
+        document.getElementById('mobile-menu-overlay')?.addEventListener('click', toggleMobileMenu);
+        
+        // ===== BREADCRUMBS =====
+        function setBreadcrumbs(items) {
+            const container = document.getElementById('breadcrumbs-container');
+            const breadcrumbsList = document.getElementById('breadcrumbs');
+            
+            if (!items || items.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            breadcrumbsList.innerHTML = items.map((item, index) => {
+                const isLast = index === items.length - 1;
+                return `
+                    <li class="breadcrumb-item">
+                        ${isLast 
+                            ? `<span class="text-gray-900 dark:text-white font-semibold">${item.text}</span>`
+                            : `<a href="${item.url}" class="hover:text-purple-600 dark:hover:text-purple-400">${item.text}</a>`
+                        }
+                    </li>
+                `;
+            }).join('');
+        }
+        
+        // Auto-generate breadcrumbs based on current path
+        function autoGenerateBreadcrumbs() {
+            const path = window.location.pathname;
+            const parts = path.split('/').filter(p => p);
+            
+            if (parts.length === 0 || path === '/') {
+                return;
+            }
+            
+            const breadcrumbs = [{ text: 'Home', url: '/' }];
+            let currentPath = '';
+            
+            parts.forEach((part, index) => {
+                currentPath += '/' + part;
+                const isLast = index === parts.length - 1;
+                
+                // Capitalize and format part
+                const text = part.split('-').map(w => 
+                    w.charAt(0).toUpperCase() + w.slice(1)
+                ).join(' ');
+                
+                breadcrumbs.push({
+                    text: text,
+                    url: isLast ? null : currentPath
+                });
+            });
+            
+            setBreadcrumbs(breadcrumbs);
+        }
+        
+        // Initialize breadcrumbs on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only auto-generate if on authenticated pages
+            if (window.location.pathname.includes('/student/') || 
+                window.location.pathname.includes('/professor/')) {
+                autoGenerateBreadcrumbs();
+            }
+        });
+        
+        // ===== LOADING HELPERS =====
+        function showLoading(message = 'Loading...') {
+            const loading = document.getElementById('global-loading');
+            loading.querySelector('p').textContent = message;
+            loading.classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('global-loading').classList.add('hidden');
+        }
+        
+        // Add loading state to forms
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn && !submitBtn.dataset.noLoading) {
+                        showLoading('Processing...');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script src="{{ url_for('static', filename='js/offline-attendance.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

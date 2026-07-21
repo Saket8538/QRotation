@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Reports - QRotation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-gray-700 hover:text-blue-600 mr-2">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    
+                    <a href="{{ url_for('professor.dashboard') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <i class="fas fa-chart-bar text-blue-600 text-2xl mr-3"></i>
+                    <span class="text-gray-900 text-xl font-bold">Attendance Reports</span>
+                </div>
+                <a href="{{ url_for('professor.analytics') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                    <i class="fas fa-chart-line mr-2"></i> Analytics Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Attendance Reports & Export</h1>
+            <p class="text-gray-600">Generate and download attendance reports for your classes</p>
+        </div>
+
+        <!-- Classes Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for class_inst in classes %}
+            <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition">
+                <div class="p-6">
+                    <!-- Class Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ class_inst.course.code }}</h3>
+                            <p class="text-sm text-gray-600">{{ class_inst.course.name }}</p>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                            {{ class_inst.class_code }}
+                        </span>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Students:</span>
+                            <span class="font-medium">{{ class_inst.enrollments.filter_by(status='active').count() }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Sessions:</span>
+                            <span class="font-medium">{{ class_inst.sessions.filter_by(status='completed').count() }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="space-y-2">
+                        <a href="{{ url_for('professor.class_report', class_id=class_inst.id) }}" 
+                           class="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-file-alt mr-2"></i> View Report
+                        </a>
+                        
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('professor.export_report', class_id=class_inst.id, format='excel') }}" 
+                               class="flex-1 text-center bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </a>
+                            <a href="{{ url_for('professor.export_report', class_id=class_inst.id, format='csv') }}" 
+                               class="flex-1 text-center bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition text-sm">
+                                <i class="fas fa-file-csv mr-1"></i> CSV
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not classes %}
+        <div class="bg-white rounded-xl shadow-sm border p-12 text-center">
+            <i class="fas fa-folder-open text-gray-400 text-6xl mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No Classes Found</h3>
+            <p class="text-gray-500 mb-6">Create a class to start generating reports</p>
+            <a href="{{ url_for('professor.create_class') }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                <i class="fas fa-plus mr-2"></i> Create Class
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Export Options -->
+        <div class="mt-8 bg-blue-50 rounded-xl border border-blue-200 p-6">
+            <h3 class="text-lg font-semibold text-blue-900 mb-3">
+                <i class="fas fa-info-circle mr-2"></i> Export Options
+            </h3>
+            <ul class="space-y-2 text-blue-800">
+                <li><i class="fas fa-check text-green-600 mr-2"></i> <strong>Excel (.xlsx)</strong> - Full report with formatting and filters</li>
+                <li><i class="fas fa-check text-green-600 mr-2"></i> <strong>CSV (.csv)</strong> - Plain text format for data analysis</li>
+                <li><i class="fas fa-check text-green-600 mr-2"></i> Filter by date range (coming soon)</li>
+                <li><i class="fas fa-check text-green-600 mr-2"></i> Includes location verification data</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
