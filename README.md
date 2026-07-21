@@ -134,7 +134,7 @@ Always use a secure `SECRET_KEY` and strong `QR_SECRET` in production. Store sec
 1. Create and activate a virtual environment:
 
 ```bash
-python -m venv .venv
+py -3.12 -m venv .venv
 # Windows
 
 6. Visit `http://localhost:5000` and sign in with test credentials (if seed data is enabled):
