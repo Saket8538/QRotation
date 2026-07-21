@@ -1,4 +1,4 @@
-# QRotation — Deep Documentation
+# QRotation — Documentation
 
 QRotation is a production-grade, privacy-first attendance platform built with Python and Flask. It provides secure, rotating QR-based attendance with real-time synchronization, explainable presence signals, fraud review workflows, and tools for professors, students, and administrators.
 
@@ -341,17 +341,6 @@ Audit & review
 - Duplicate records: DB unique constraint (`session_id`, `student_id`) blocks duplicates; inspect client retries and idempotency behavior.
 - Offline payloads failing to sync: check service worker scope, storage quota, and AES key availability used by the front-end to seal payloads.
 
-## Contributing
-
-- Fork, change, and open a pull request. Ensure changes include tests where applicable and update the documentation.
-- If adding endpoints, provide OpenAPI definitions or an API README and consider backward compatibility.
-
-## Next steps I can take for you
-
-- Generate an OpenAPI / Swagger spec for the HTTP API.
-- Scaffold a `docker-compose.yml` with Postgres and Redis for local development.
-- Create integration smoke tests for the QR attendance flow and a minimal test harness.
-
 ---
 ## API endpoints
 
@@ -417,6 +406,7 @@ Open an issue or request which of the next steps you'd like me to take.
 
 ## 📜 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+- This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+
 ---
 
