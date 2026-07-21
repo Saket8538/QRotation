@@ -149,20 +149,210 @@ python app.py
 Notes:
 - The app uses Flask-SocketIO for realtime; ensure the transport (eventlet/gevent) is available if you run in production.
 
-## Testing and validation
+## Environment variables (`.env` example)
 
-- Unit tests (if present) live under `tests/`. Run them with:
+Create a `.env` file from `.env.example` and set values appropriate for your environment. Example keys used by the app (add or remove keys depending on your deployment):
 
-```bash
-python -m unittest discover -s tests -v
+```env
+# Flask
+SECRET_KEY=changeme_in_production
+FLASK_ENV=development
+
+# Database
+DATABASE_URL=sqlite:///instance/attendance.db
+
+# QR token
+QR_SECRET=very-secret-hmac-key
+QR_EXPIRY_SECONDS=90
+QR_ROTATION_INTERVAL=30
+QR_GRACE_PERIOD_SECONDS=10
+
+# Institution / auth
+ALLOWED_EMAIL_DOMAIN=@acem.ac.in
+
+# Geolocation
+ENABLE_GEOLOCATION=False
+REQUIRE_GEOLOCATION=False
+LOCATION_VERIFICATION_RADIUS=100.0
+
+# Mail
+MAIL_SERVER=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=mail@example.com
+MAIL_PASSWORD=supersecret
+ENABLE_EMAIL_NOTIFICATIONS=False
+
+# App behavior
+SEED_INITIAL_DATA=True
 ```
 
-- To manually validate the QR flow:
-  1. Start a class session as a professor.
- 2. Note the QR rotation interval and capture one token payload.
- 3. Use the student scanner to post a token to `/student/scan/process`.
- 4. Verify an `AttendanceRecord` is created and `PresenceVerification` saved.
+Set `SECRET_KEY` and `QR_SECRET` to securely generated values in production. Use a secrets manager or environment configuration in your hosting environment rather than committing secrets to source control.
 
+## Database initialization & seeding
+
+Local dev uses SQLite by default. To initialize and seed the database:
+
+```bash
+# create and activate venv
+python -m venv .venv
+.venv\Scripts\activate      # Windows
+# install deps
+pip install -r requirements.txt
+# run the app which will create instance/ and initialize DB (app.py runs seed when enabled)
+python app.py
+```
+
+Notes:
+- If you want Postgres in development, set `DATABASE_URL` to a Postgres URI and run your migrations (the project may use SQLAlchemy's base create_all or a migration tool if configured).
+- `app/utils/seed_data.py` contains the sample seeding routines (`create_test_users`, `create_test_class`) used in local dev when `SEED_INITIAL_DATA` is enabled.
+
+## QR payload example and validation pseudocode
+
+Example token payload encoded in the QR (the actual app encodes and signs this, then stores a hashed token in `QRToken`):
+
+```json
+{
+  "sessionId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+  "timestamp": 1736697600000,
+  "nonce": "4f2e6b8d9c3a",
+  "expiresAt": "2026-01-12T12:00:30Z",
+  "signature": "hmac-sha256-hex"
+}
+```
+
+Server-side validation (high level):
+
+```python
+def validate_token(payload):
+    # 1. Verify HMAC signature using QR_SECRET
+    if not verify_signature(payload, QR_SECRET):
+        return False, 'invalid_signature'
+
+    # 2. Verify expiry
+    if payload.expiresAt < now():
+        return False, 'expired'
+
+    # 3. Lookup QRToken by token hash to ensure it wasn't revoked
+    token_hash = hash_token(payload)
+    token = QRToken.query.filter_by(token_hash=token_hash).first()
+    if not token or token.revoked_at:
+        return False, 'revoked_or_missing'
+
+    # 4. Confirm the session is active and within its scheduled window
+    session = ClassSession.query.get(payload.sessionId)
+    if not session or session.status != 'active':
+        return False, 'session_inactive'
+
+    return True, session
+```
+
+After validation, the attendance pipeline verifies enrollment, optional device bindings and geolocation, then creates `PresenceVerification` and `AttendanceRecord` entries.
+
+## API examples (curl)
+
+Retrieve a session QR metadata (requires auth cookie or token in your app):
+
+```bash
+curl -X GET http://localhost:5000/api/sessions/<SESSION_ID>/qr
+```
+
+Emulate posting a scanned token to the server (student scanner behavior):
+
+```bash
+curl -X POST http://localhost:5000/student/scan/process \
+  -H 'Content-Type: application/json' \
+  -d '{"token": "<qr-payload-string>", "device_fingerprint": "abc123", "latitude": 12.34, "longitude": 56.78}'
+```
+
+## Developer workflows and guidelines
+
+- Add a new field to a model:
+  1. Add the column to the SQLAlchemy model in `app/models.py`.
+  2. If you use migrations (Flask-Migrate), create and run a migration; otherwise ensure the new schema is handled in your migration plan.
+  3. Update any serializers or `to_dict()` helpers.
+
+- Seeding test data: toggle `SEED_INITIAL_DATA` then run `python app.py` to populate sample users, courses and a test session.
+
+- Debugging tips:
+  - Check Flask logs for route and validation errors.
+  - Use the Flask shell: `python -c "from app import create_app, db; app=create_app(); app.app_context().push(); from app.models import User; print(User.query.count())"`
+  - For SocketIO issues, review client console logs and server event handlers in `app/routes`.
+
+## Running in production
+
+Recommended minimal stack for production:
+
+- Postgres for the database (`DATABASE_URL=postgresql://user:pass@db:5432/qrotation`)
+- Redis for SocketIO message queue and caching
+- Gunicorn with eventlet (or gevent) workers for WebSocket support
+
+Example Gunicorn command:
+
+```bash
+gunicorn -k eventlet -w 1 "app:create_app()" --bind 0.0.0.0:8000
+```
+
+Docker / docker-compose (suggested)
+- Provide a `docker-compose.yml` with services for `web`, `db` (Postgres), and `redis` to reproduce a production-like environment locally. I can scaffold this for you on request.
+
+## API reference (expanded)
+
+Auth / user
+- `POST /auth/login` — JSON or form credentials, returns Set-Cookie session or token
+- `POST /auth/student/register` — student registration
+- `POST /auth/professor/register` — professor registration
+
+Class & session
+- `GET /professor/classes` — list professor classes
+- `POST /professor/classes/create` — create class instance (course, semester, section)
+- `POST /professor/sessions/<id>/activate` — marks session active and generates QR tokens
+- `POST /professor/sessions/<id>/complete` — completes session and optionally auto-marks absentees
+
+Scanner & attendance
+- `GET /api/sessions/<id>/qr` — current QR metadata
+- `POST /student/scan/process` — submit scanned payload; returns attendance result and verification details
+
+Audit & review
+- `GET /professor/sessions/<id>/attendance` — session attendance list with presence verification
+- `GET /professor/fraud-alerts` — list pending fraud alerts
+- `POST /admin/appeals/<id>/review` — resolve attendance appeals
+
+## Templates & PWA notes (expanded)
+
+- `app/templates/base.html` — core layout, includes SocketIO and client-side helpers.
+- Scanner pages register a service worker from `app/static/service-worker.js` and read `app/static/manifest.json` for PWA metadata.
+- Offline scanner behavior: the service worker stores encrypted scan payloads in IndexedDB/localStorage and retries submission on network restoration. See `app/static/js/offline-attendance.js` for client-side logic.
+
+## Utilities (expanded)
+
+- `app/utils/qr_generator.py` — contains token creation, `sign_token()`, and `verify_signature()` utilities. Tokens are stored hashed in `QRToken.token_hash` to avoid storing raw tokens.
+- `app/utils/attendance_service.py` — centralizes scan processing: `validate_token()`, `verify_enrollment()`, `compute_presence_score()`, and `record_attendance()`.
+- `app/utils/email_service.py` — asynchronous email notifications (alerts, appeals, reminders). Email templates live under `app/templates/email/` when present.
+
+## Maintenance, scaling and common pitfalls
+
+- Clock skew: HMAC expiry checks require server clocks be synchronized (NTP). Token expiry mismatches are a frequent source of 'expired' validation failures.
+- Revocation and rotation: rotating `QR_SECRET` invalidates tokens; provide a revocation or graceful rotation strategy in your deployment plan.
+- Concurrency: use Redis + SocketIO message queue for multi-worker setups to ensure real-time messages propagate across processes.
+
+## Troubleshooting & FAQs (expanded)
+
+- QR rejected after generation: check `QR_EXPIRY_SECONDS` and server time; verify token signature using the same `QR_SECRET` as token issuer.
+- Duplicate records: DB unique constraint (`session_id`, `student_id`) blocks duplicates; inspect client retries and idempotency behavior.
+- Offline payloads failing to sync: check service worker scope, storage quota, and AES key availability used by the front-end to seal payloads.
+
+## Contributing
+
+- Fork, change, and open a pull request. Ensure changes include tests where applicable and update the documentation.
+- If adding endpoints, provide OpenAPI definitions or an API README and consider backward compatibility.
+
+## Next steps I can take for you
+
+- Generate an OpenAPI / Swagger spec for the HTTP API.
+- Scaffold a `docker-compose.yml` with Postgres and Redis for local development.
+- Create integration smoke tests for the QR attendance flow and a minimal test harness.
+
+---
 ## API endpoints
 
 The important endpoints (see `app/routes/api.py` and other blueprints):
@@ -224,5 +414,9 @@ If you'd like, I can:
 
 Open an issue or request which of the next steps you'd like me to take.
 
+
+## 📜 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
 ---
 
